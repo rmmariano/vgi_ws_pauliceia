@@ -1,0 +1,59 @@
+<!--
+    Responsible template to be a base template for the others
+-->
+
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+
+        <title> {{ escape(handler.settings["blog_title"]) }} </title>
+
+        <link rel="icon" href="/static/img/favicon/favicon.ico">
+
+        <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+        <!--<script src="http://getbootstrap.com/assets/js/ie10-viewport-bug-workaround.js"></script>-->
+        <script src="/static/libs/bootstrap/ie10-viewport-bug-workaround.js"></script>
+
+        <!--<link rel="stylesheet" href="http://getbootstrap.com/dist/css/bootstrap.min.css" type="text/css">-->
+        <!--<link rel="stylesheet" href="/static/libs/bootstrap/bootstrap.min.css" type="text/css">-->
+        <link rel="stylesheet" href="/static/libs/bootstrap/css/bootstrap.min.css" type="text/css">
+        <link rel="stylesheet" href="/static/css/common.css" type="text/css">
+
+        {% block css %}{% end %}
+
+        <!--<script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>-->
+        <!--<script type="text/javascript" src="http://getbootstrap.com/dist/js/bootstrap.min.js"></script>-->
+        <script type="text/javascript" src="/static/libs/jquery/jquery-latest.min.js"></script>
+        <script type="text/javascript" src="/static/libs/bootstrap/js/bootstrap.min.js"></script>
+
+        <script type="text/javascript" src="/static/js/common.js"></script>
+
+        {% block js %}{% end %}
+
+        {% block head %}{% end %}
+    </head>
+
+    <body>
+
+        <div id="id_main_navbar">
+            {% include "main_navbar.html" %}
+        </div>
+
+        <div id="id_body">
+            <div class="container">
+                <div class="page-header">
+                    <h3> {% block page_header %}{% end %} </h3>
+                </div>
+                {% block body %}{% end %}
+            </div>
+        </div>
+
+        <div id="id_footer">
+            {% include "main_footer.html" %}
+        </div>
+
+    </body>
+
+</html>
