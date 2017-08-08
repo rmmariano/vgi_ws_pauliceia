@@ -2,8 +2,9 @@
 venv/*
 ignore/*
 
-# Files to ignore
-settings/*
+
+# Ignore specific files
+settings/db_settings.py
 
 
 # Internal files
