@@ -27,7 +27,7 @@ The meaning of the mainly folders and files are:
 
 ## Running it
 
-This project has made in Python 3 and use VirtualEnvWrapper [VirtualEnvWrapper](http://www.arruda.blog.br/programacao/python/usando-virtualenvwrapper/) to facilitate the environment.
+This project has made in Python 3 and use [VirtualEnvWrapper](http://www.arruda.blog.br/programacao/python/usando-virtualenvwrapper/) to facilitate the environment.
 
 To create a new virtualenv:
 
