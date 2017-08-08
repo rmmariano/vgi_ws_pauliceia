@@ -13,8 +13,8 @@ from tornado.httpserver import HTTPServer
 from tornado.web import Application, StaticFileHandler
 from tornado.options import define, options, parse_command_line
 
-from controllers import *
 from settings import *
+from controllers import *
 
 
 # Define which IP will be used
@@ -90,8 +90,10 @@ def start_application():
 
 def stop_application():
     print("Stopping PostgreSQL")
-
     PGSQL_CONNECTION.close()
+
+    print("Closing the web service!")
+    IOLoop.instance().stop()
 
 
 def main():
@@ -114,7 +116,6 @@ def main():
     # CTRL+C on linux / CTRL+BREAK on windows
     except KeyboardInterrupt:
         stop_application()
-        IOLoop.instance().stop()
 
 
 # If this file is the main application, so will execute the main function

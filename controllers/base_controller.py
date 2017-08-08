@@ -8,6 +8,9 @@
 
 from tornado.web import RequestHandler
 
+# Let importing ALL
+from models import *
+
 
 class BaseHandler(RequestHandler):
     """
