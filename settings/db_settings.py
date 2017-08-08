@@ -31,7 +31,6 @@ try:
                                dbname=__PGSQL_CONNECTION_SETTINGS__["DATABASE"])
 
     print("PostgreSQL's connection was: successful!")
-
 except (DatabaseError, Exception) as error:
     print("PostgreSQL's connection was: failed! \n")
     print("Error: ", error)

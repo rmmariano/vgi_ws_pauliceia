@@ -1,7 +1,12 @@
-# Ignore all the files in venv, but do not ignore create_venv.sh and requirements.txt
+# Ignore all the files in folders
 venv/*
-
 ignore/*
+
+# Files to ignore
+settings/*
+
+
+# Internal files
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
