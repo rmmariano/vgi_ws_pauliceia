@@ -39,6 +39,16 @@ class IndexHandler(BaseHandler):
         self.render("index.html", **context)
 
 
+# # Simple routine to run a query on a database and print the results:
+# def doQuery( conn ) :
+#     cur = conn.cursor()
+#
+#     cur.execute( "SELECT fname, lname FROM employee" )
+#
+#     for firstname, lastname in cur.fetchall() :
+#         print(firstname, lastname)
+
+
 class GetPoint(BaseHandler):
 
     urls = [r"/get/point/"]

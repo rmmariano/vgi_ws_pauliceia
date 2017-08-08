@@ -15,13 +15,14 @@ os_environ_get = os.environ.get
 
 
 CURRENT_YEAR = str(datetime.now().year)
-AUTHOR = "AUTHOR"
+AUTHOR = "Rodrigo M. Mariano"
 
 
 VERSION = "1.0.0"
-TITLE_APP = "Test text"
+TITLE_APP = "VGI Web Service for Pauliceia's project"
 
 
+# All public IP
 IP_APP = "0.0.0.0"
 PORT_APP = int(os_environ_get("PORT", 8888))
 

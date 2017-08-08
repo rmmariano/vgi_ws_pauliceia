@@ -79,6 +79,21 @@ class HttpServerApplication(Application):
         Application.__init__(self, __handlers__, **__setting__s)
 
 
+def start_application():
+    parse_command_line()
+    http_server = HTTPServer(HttpServerApplication())
+    http_server.listen(options.port, address=options.address)
+    print("\nRunning Tornado on " + URL_APP + "\n")
+
+    IOLoop.current().start()
+
+
+def stop_application():
+    print("Stopping PostgreSQL")
+
+    PGSQL_CONNECTION.close()
+
+
 def main():
     """
         Responsible function to execute routines to start the application.
@@ -93,11 +108,13 @@ def main():
             Nothing until the moment.
     """
 
-    parse_command_line()
-    http_server = HTTPServer(HttpServerApplication())
-    http_server.listen(options.port, address=options.address)
-    print("\nRunning Tornado on " + URL_APP + "\n")
-    IOLoop.current().start()
+    try:
+        start_application()
+
+    # CTRL+C on linux / CTRL+BREAK on windows
+    except KeyboardInterrupt:
+        stop_application()
+        IOLoop.instance().stop()
 
 
 # If this file is the main application, so will execute the main function
