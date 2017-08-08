@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 
+
 # A dictionary with the settings about PostgreSQL connection
 __PGSQL_CONNECTION_SETTINGS__ = {
     "HOSTNAME": "HOSTNAME",
