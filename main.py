@@ -16,6 +16,8 @@ from tornado.options import define, options, parse_command_line
 from settings import *
 from controllers import *
 
+from tornado.escape import xhtml_escape
+
 
 # Define which IP will be used
 define("address", default=IP_APP, help="run on the IP given", type=str)

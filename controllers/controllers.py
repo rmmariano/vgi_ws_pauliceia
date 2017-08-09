@@ -66,8 +66,12 @@ class GetPoint(BaseHandler):
 
     def get(self, table_name, id_value):
 
-        # query_text = "SELECT id, number, original_number FROM " + table_name
-        query_text = "SELECT * FROM " + table_name
+        list_of_columns_name_and_data_types = self.get_columns_name_and_data_types_from_table(table_name=table_name)
+        columns_name = self.get_list_of_columns_name_in_str(list_of_columns_name_and_data_types)
+
+        # print("columns_name: ", columns_name)
+
+        query_text = "SELECT " + columns_name + " FROM " + table_name
 
         if id_value.isdigit():
             # if id_value is a number, so search by it
@@ -102,18 +106,4 @@ class AddPoint(BaseHandler):
     def get(self):
         print("/add/point/")
 
-
-
-#
-
-# Example usage (serialization):
-#
-# from bson import json_util
-# import json
-#
-# json.dumps(anObject, default=json_util.default)
-#
-# Example usage (deserialization):
-#
-# json.loads(aJsonString, object_hook=json_util.object_hook)
 
