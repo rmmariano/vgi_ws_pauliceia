@@ -7,7 +7,8 @@
 
 
 from .base_controller import *
-from json import dumps
+from bson import json_util
+
 
 
 class IndexHandler(BaseHandler):
@@ -60,16 +61,13 @@ class SimplePageHandler(BaseHandler):
 
 class GetPoint(BaseHandler):
 
-    # urls = [r"/get/point/"]
-    # urls = [r"/get/point/([^/]+)"]
-
-    # urls = [r"/get/point/(?P<id>[^\/]+)/", r"/get/point/(?P<id>[^\/]+)"]
     urls = [r"/get/point/(?P<table_name>[^\/]+)/(?P<id_value>[^\/]+)/",
             r"/get/point/(?P<table_name>[^\/]+)/(?P<id_value>[^\/]+)"]
 
     def get(self, table_name, id_value):
 
-        query_text = "SELECT id, number, original_number FROM " + table_name
+        # query_text = "SELECT id, number, original_number FROM " + table_name
+        query_text = "SELECT * FROM " + table_name
 
         if id_value.isdigit():
             # if id_value is a number, so search by it
@@ -79,28 +77,22 @@ class GetPoint(BaseHandler):
             pass
         else:
             # if id_value is not a digit and is not "all", so raise error
-            status = 400
-            reason = "Invalid argument: " + id_value
-
-            self.set_status(status, reason=reason)
-            self.write(dumps({"status": status, "statusText": reason}))
+            self.set_and_send_status(status=400,
+                                     reason="Invalid argument: " + id_value)
             return
 
         # run the query
-        result = self.search_in_database_by_query(query_text)
+        results_list = self.search_in_database_by_query(query_text)
 
         # if result is empty
-        if not result:
+        if not results_list:
             # Not found values
-            status = 404
-            reason = "Not found anything with id: " + id_value
-
-            self.set_status(status, reason=reason)
-            self.write(dumps({"status": status, "statusText": reason}))
+            self.set_and_send_status(status=404,
+                                     reason="Not found anything with id: " + id_value)
             return
 
-        # if is all ok, return the result as JSON
-        self.write(dumps(result))
+        # if is all ok, return the result as JSON (convert dict to JSON)
+        self.write(dumps(results_list, default=json_util.default))
 
 
 class AddPoint(BaseHandler):
@@ -109,3 +101,19 @@ class AddPoint(BaseHandler):
 
     def get(self):
         print("/add/point/")
+
+
+
+#
+
+# Example usage (serialization):
+#
+# from bson import json_util
+# import json
+#
+# json.dumps(anObject, default=json_util.default)
+#
+# Example usage (deserialization):
+#
+# json.loads(aJsonString, object_hook=json_util.object_hook)
+
