@@ -8,6 +8,7 @@
 
 from .base_controller import *
 from bson import json_util
+from re import findall
 
 
 
@@ -130,31 +131,65 @@ class AddPoint(BaseHandler):
 
         columns = ""
         values = ""
+        # values = []
+
+        last_index = len(list_of_columns_name_and_data_types) - 1
 
         for point in points_to_add:
 
-            for field_of_table in list_of_columns_name_and_data_types:
+            for i in range(0, len(list_of_columns_name_and_data_types)):
+                field_of_table = list_of_columns_name_and_data_types[i]
 
                 column_name = field_of_table["column_name"]
+                data_type = field_of_table["data_type"]
 
-                if column_name in point:
-                    columns += column_name + ", "
-                    values += str(point[column_name]) + ", "
+                value = point[column_name]
+
+                # to insert is necessary the column name exist in point dict
+                # the column name shouldn't be "id", because is a PK autoincrement
+                # if there is a None value, so doesn't add it
+                if column_name in point and column_name != "id" and value is not None:
+                    columns += column_name
+
+
+                    value = str(value)
+
+                    # if the value is a geometry in WKT, so we get the SRID and use the function
+                    # ST_GeomFromText() to add the geometry
+                    if 'geometry' in data_type:
+                        # findall(r'\d+', data_type) will return a list of numbers in string: ['4326']
+                        # findall(r'\d+', data_type)[0] will get the only element: '4326'
+                        SRID = findall(r'\d+', data_type)[0]
+
+                        value = "ST_GeomFromText('" + value + "', " + SRID + ")"
+
+                    # if value is text, so add two quotes, e.g.: 'TEST_'
+                    elif not value.isdigit():
+                        value = "'" + value + "'"
+
+
+
+                    values += value
+
+                    # while is not the end of the list, add ", " in the final of the columns and values
+                    if i != last_index:
+                        columns += ", "
+                        values += ", "
+
                 else:
-                    print("Column ", field_of_table["column_name"], " in table ", table_name,
-                          " was not declared in point: \n", point)
+                    # print("\nColumn ", field_of_table["column_name"], " of the table ", table_name,
+                    #       " was not declared in point dict or column name is 'id' or the value is None. ",
+                    #       "\ncolumn_name: ", column_name,
+                    #       "\nvalue: ", value,
+                    #       "\npoint: ", point)
+                    pass
 
-
-
-
-
-
-        columns = "id_street, name, geom, number, id_user"
-        values = "22, 'TEST', ST_GeomFromText('POINT(-46.98 -19.57)', 4326), 34, 6"
+        # print(columns)
+        # print(values)
 
         insert_query_text = "INSERT INTO " + table_name + " (" + columns + ") VALUES (" + values + ")"
 
-        print("\ninsert_query_text: ", insert_query_text)
+        # print("\ninsert_query_text: ", insert_query_text)
 
         # cur.execute("INSERT INTO test (num, data) VALUES (%s, %s)", (100, "abc'def"))
 
