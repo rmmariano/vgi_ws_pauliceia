@@ -92,7 +92,9 @@ def start_application():
 
 def stop_application():
     print("Stopping PostgreSQL")
-    PGSQL_CONNECTION.close()
+    # Get the instance of the DB connection
+    PGSQLConn = PGSQLConnection.get_instance()
+    PGSQLConn.PGSQL_CONNECTION.close()
 
     print("Closing the web service!")
     IOLoop.instance().stop()

@@ -66,7 +66,8 @@ class GetPoint(BaseHandler):
 
     def get(self, table_name, id_value):
 
-        list_of_columns_name_and_data_types = self.PGSQLConn.get_columns_name_and_data_types_from_table(table_name=table_name)
+        list_of_columns_name_and_data_types = self.PGSQLConn.get_columns_name_and_data_types_from_table(table_name=table_name,
+                                                                                                        transform_geom_bin_in_wkt=True)
         columns_name = self.PGSQLConn.get_list_of_columns_name_in_str(list_of_columns_name_and_data_types)
 
         # print("columns_name: ", columns_name)
@@ -112,12 +113,39 @@ class AddPoint(BaseHandler):
         print("\npoints_to_add: ", points_to_add)
 
 
-        #
-
-        list_of_columns_name_and_data_types = self.PGSQLConn.get_columns_name_and_data_types_from_table(table_name=table_name)
+        list_of_columns_name_and_data_types = self.PGSQLConn.get_columns_name_and_data_types_from_table(table_name=table_name,
+                                                                                                        transform_geom_bin_in_wkt=False)
         columns_name = self.PGSQLConn.get_list_of_columns_name_in_str(list_of_columns_name_and_data_types)
 
+
         print("\ncolumns_name: ", columns_name)
+
+
+
+
+        #
+
+        # columns = "id_street, name, geom, number, id_user"
+        # values = "22, 'TEST', ST_GeomFromText('POINT(-46.98 -19.57)', 4326), 34, 6"
+
+        columns = ""
+        values = ""
+
+        for point in points_to_add:
+
+            for field_of_table in list_of_columns_name_and_data_types:
+
+                column_name = field_of_table["column_name"]
+
+                if column_name in point:
+                    columns += column_name + ", "
+                    values += str(point[column_name]) + ", "
+                else:
+                    print("Column ", field_of_table["column_name"], " in table ", table_name,
+                          " was not declared in point: \n", point)
+
+
+
 
 
 
@@ -130,14 +158,10 @@ class AddPoint(BaseHandler):
 
         # cur.execute("INSERT INTO test (num, data) VALUES (%s, %s)", (100, "abc'def"))
 
-        status = self.PGSQLConn.__PGSQL_CURSOR__.execute(insert_query_text)
+        self.PGSQLConn.__PGSQL_CURSOR__.execute(insert_query_text)
 
-        self.PGSQLConn.PGSQL_CONNECTION.commit()
+        self.PGSQLConn.commit()
 
-
-
-
-        print("\nstatus: ", status)
 
 
 
