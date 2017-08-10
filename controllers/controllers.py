@@ -66,8 +66,8 @@ class GetPoint(BaseHandler):
 
     def get(self, table_name, id_value):
 
-        list_of_columns_name_and_data_types = self.get_columns_name_and_data_types_from_table(table_name=table_name)
-        columns_name = self.get_list_of_columns_name_in_str(list_of_columns_name_and_data_types)
+        list_of_columns_name_and_data_types = self.PGSQLConn.get_columns_name_and_data_types_from_table(table_name=table_name)
+        columns_name = self.PGSQLConn.get_list_of_columns_name_in_str(list_of_columns_name_and_data_types)
 
         # print("columns_name: ", columns_name)
 
@@ -86,7 +86,7 @@ class GetPoint(BaseHandler):
             return
 
         # run the query
-        results_list = self.search_in_database_by_query(query_text)
+        results_list = self.PGSQLConn.search_in_database_by_query(query_text)
 
         # if result is empty
         if not results_list:
@@ -112,6 +112,14 @@ class AddPoint(BaseHandler):
         print("\npoints_to_add: ", points_to_add)
 
 
+        #
+
+        list_of_columns_name_and_data_types = self.PGSQLConn.get_columns_name_and_data_types_from_table(table_name=table_name)
+        columns_name = self.PGSQLConn.get_list_of_columns_name_in_str(list_of_columns_name_and_data_types)
+
+        print("\ncolumns_name: ", columns_name)
+
+
 
         columns = "id_street, name, geom, number, id_user"
         values = "22, 'TEST', ST_GeomFromText('POINT(-46.98 -19.57)', 4326), 34, 6"
@@ -122,9 +130,9 @@ class AddPoint(BaseHandler):
 
         # cur.execute("INSERT INTO test (num, data) VALUES (%s, %s)", (100, "abc'def"))
 
-        status = self.__PGSQL_CURSOR__.execute(insert_query_text)
+        status = self.PGSQLConn.__PGSQL_CURSOR__.execute(insert_query_text)
 
-        PGSQL_CONNECTION.commit()
+        self.PGSQLConn.PGSQL_CONNECTION.commit()
 
 
 

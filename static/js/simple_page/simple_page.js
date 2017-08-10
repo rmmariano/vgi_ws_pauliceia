@@ -1,6 +1,6 @@
 $(document).ready(function(){
 
-    $('#button1').click(function(){
+    $('#not_found_path').click(function(){
 
         var points_to_add = [
             {
@@ -49,7 +49,7 @@ $(document).ready(function(){
     });
 
 
-    $('#button2').click(function(){
+    $('#insert_one_point').click(function(){
 
         var points_to_add = [
             {
