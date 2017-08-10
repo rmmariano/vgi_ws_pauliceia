@@ -33,10 +33,10 @@ print("\nConnecting in PostgreSQL with:"
 
 try:
     PGSQL_CONNECTION = connect(host=__PGSQL_CONNECTION_SETTINGS__["HOSTNAME"],
-                                           port=__PGSQL_CONNECTION_SETTINGS__["PORT"],
-                                           user=__PGSQL_CONNECTION_SETTINGS__["USERNAME"],
-                                           password=__PGSQL_CONNECTION_SETTINGS__["PASSWORD"],
-                                           dbname=__PGSQL_CONNECTION_SETTINGS__["DATABASE"])
+                               port=__PGSQL_CONNECTION_SETTINGS__["PORT"],
+                               user=__PGSQL_CONNECTION_SETTINGS__["USERNAME"],
+                               password=__PGSQL_CONNECTION_SETTINGS__["PASSWORD"],
+                               dbname=__PGSQL_CONNECTION_SETTINGS__["DATABASE"])
 
     print("PostgreSQL's connection was: successful!")
 except (DatabaseError, Exception) as error:

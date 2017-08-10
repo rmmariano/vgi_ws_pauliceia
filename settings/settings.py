@@ -19,7 +19,7 @@ AUTHOR = "Rodrigo M. Mariano"
 
 
 VERSION = "1.0.0"
-TITLE_APP = "VGI Web Service for Pauliceia project"
+TITLE_APP = "VGI Web Service for Pauliceia Project"
 
 
 # All public IP

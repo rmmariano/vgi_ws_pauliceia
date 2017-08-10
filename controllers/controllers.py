@@ -101,9 +101,44 @@ class GetPoint(BaseHandler):
 
 class AddPoint(BaseHandler):
 
-    urls = [r"/add/point/"]
+    # urls = [r"/add/point/"]
+    urls = [r"/add/point/(?P<table_name>[^\/]+)",
+            r"/add/point/(?P<table_name>[^\/]+)/"]
 
-    def get(self):
-        print("/add/point/")
+    def post(self, table_name):
+
+        points_to_add = self.get_the_json_validated()
+
+        print("\npoints_to_add: ", points_to_add)
+
+
+
+        columns = "id_street, name, geom, number, id_user"
+        values = "22, 'TEST', ST_GeomFromText('POINT(-46.98 -19.57)', 4326), 34, 6"
+
+        insert_query_text = "INSERT INTO " + table_name + " (" + columns + ") VALUES (" + values + ")"
+
+        print("\ninsert_query_text: ", insert_query_text)
+
+        # cur.execute("INSERT INTO test (num, data) VALUES (%s, %s)", (100, "abc'def"))
+
+        status = self.__PGSQL_CURSOR__.execute(insert_query_text)
+
+        PGSQL_CONNECTION.commit()
+
+
+
+
+        print("\nstatus: ", status)
+
+
+
+
+
+
+
+
+
+        self.set_and_send_status(status=201, reason="Added the points")
 
 
