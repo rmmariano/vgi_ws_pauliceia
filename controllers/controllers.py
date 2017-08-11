@@ -11,7 +11,6 @@ from bson import json_util
 from re import findall
 
 
-
 class IndexHandler(BaseHandler):
     """
         Responsible class to render the Home Page (Index).
@@ -71,8 +70,7 @@ class GetPoint(BaseHandler):
                                                                                                         transform_geom_bin_in_wkt=True)
         columns_name = self.PGSQLConn.get_list_of_columns_name_in_str(list_of_columns_name_and_data_types)
 
-        # print("columns_name: ", columns_name)
-
+        # something like: 'SELECT id, id_street, ST_AsText(geom) as geom FROM tb_places'
         query_text = "SELECT " + columns_name + " FROM " + table_name
 
         if id_value.isdigit():
@@ -103,7 +101,6 @@ class GetPoint(BaseHandler):
 
 class AddPoint(BaseHandler):
 
-    # urls = [r"/add/point/"]
     urls = [r"/add/point/(?P<table_name>[^\/]+)",
             r"/add/point/(?P<table_name>[^\/]+)/"]
 
@@ -200,5 +197,4 @@ class AddPoint(BaseHandler):
         self.PGSQLConn.commit()
 
         self.set_and_send_status(status=201, reason="Added the points")
-
 

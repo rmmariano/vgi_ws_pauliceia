@@ -6,6 +6,7 @@
     vgi_ws_pauliceia/settings/db_settings.py
 
     With the follow content:
+
     __PGSQL_CONNECTION_SETTINGS__ = {
         "HOSTNAME": "HOSTNAME",
         "USERNAME": "USERNAME",
@@ -14,7 +15,14 @@
         "PORT": 5432
     }
 
+    __LIST_TABLES_INFORMATION__ = [
+        {"table_name": "TABLE_NAME"},
+        {"table_name": "TABLE_NAME"},
+        ...
+    ]
+
     This __PGSQL_CONNECTION_SETTINGS__ dictionary is the connection with PostgreSQL
+    The __LIST_TABLES_INFORMATION__ is a list with all tables` name
 """
 
 
@@ -26,18 +34,7 @@ from psycopg2.extras import RealDictCursor
 from copy import deepcopy
 
 from modules.design_pattern import Singleton
-from settings.db_settings import __PGSQL_CONNECTION_SETTINGS__
-
-
-# __TABLES_INFORMATION__ = [
-#     {"table_name": "tb_places", "list_of_columns_name_and_data_types": []},
-#     {"table_name": "tb_street", "list_of_columns_name_and_data_types": []}
-# ]
-
-__LIST_TABLES_INFORMATION__ = [
-    {"table_name": "tb_places"},
-    {"table_name": "tb_street"}
-]
+from settings.db_settings import __PGSQL_CONNECTION_SETTINGS__, __LIST_TABLES_INFORMATION__
 
 
 @Singleton
@@ -73,12 +70,20 @@ class PGSQLConnection:
         self.__fill_list_tables_information__()
 
     def __generate_a_set_with_tables_names__(self):
+        """
+            Create a SET with the tables` names
+        """
+
         self.__TABLES_NAMES__ = set()
 
         for ONE_TABLE_INF in __LIST_TABLES_INFORMATION__:
             self.__TABLES_NAMES__.add(ONE_TABLE_INF["table_name"])
 
     def __fill_list_tables_information__(self):
+        """
+            Given the __LIST_TABLES_INFORMATION__ list, do a SELECT in DB and fill the dictionaries with the
+            information about the table columns
+        """
 
         for ONE_TABLE_INF in __LIST_TABLES_INFORMATION__:
 

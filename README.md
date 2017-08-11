@@ -29,9 +29,11 @@ The meaning of the mainly folders and files are:
 
 This project has made in Python 3 and use [VirtualEnvWrapper](http://www.arruda.blog.br/programacao/python/usando-virtualenvwrapper/) to facilitate the environment.
 
-To create a new virtualenv:
+To create a new virtualenv with Python 3:
 
 $ mkvirtualenv vgi_ws_pauliceia
+
+$ mkvirtualenv -p /usr/bin/python3 vgi_ws_pauliceia
 
 To switch the environment:
 
