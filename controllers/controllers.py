@@ -111,34 +111,17 @@ class AddPoint(BaseHandler):
 
         points_to_add = self.get_the_json_validated()
 
-        print("\npoints_to_add: ", points_to_add)
-
-
         list_of_columns_name_and_data_types = self.PGSQLConn.get_columns_name_and_data_types_from_table(table_name=table_name,
                                                                                                         transform_geom_bin_in_wkt=False)
-        columns_name = self.PGSQLConn.get_list_of_columns_name_in_str(list_of_columns_name_and_data_types)
+        # columns_name = self.PGSQLConn.get_list_of_columns_name_in_str(list_of_columns_name_and_data_types)
 
-
-        print("\ncolumns_name: ", columns_name)
-
-
-
-
-        #
-
-        # columns = "id_street, name, geom, number, id_user"
-        # values = "22, 'TEST', ST_GeomFromText('POINT(-46.98 -19.57)', 4326), 34, 6"
-
-        columns = ""
-        values = ""
-        # values = []
-
-        last_index = len(list_of_columns_name_and_data_types) - 1
+        columns = []
+        values = []
+        # masks = []
 
         for point in points_to_add:
 
-            for i in range(0, len(list_of_columns_name_and_data_types)):
-                field_of_table = list_of_columns_name_and_data_types[i]
+            for field_of_table in list_of_columns_name_and_data_types:
 
                 column_name = field_of_table["column_name"]
                 data_type = field_of_table["data_type"]
@@ -149,10 +132,8 @@ class AddPoint(BaseHandler):
                 # the column name shouldn't be "id", because is a PK autoincrement
                 # if there is a None value, so doesn't add it
                 if column_name in point and column_name != "id" and value is not None:
-                    columns += column_name
-
-
-                    value = str(value)
+                    columns.append(column_name)
+                    # masks.append("%s")
 
                     # if the value is a geometry in WKT, so we get the SRID and use the function
                     # ST_GeomFromText() to add the geometry
@@ -161,20 +142,34 @@ class AddPoint(BaseHandler):
                         # findall(r'\d+', data_type)[0] will get the only element: '4326'
                         SRID = findall(r'\d+', data_type)[0]
 
+                        # the value is a geometry in WKT, so to add it in DB
+                        # we can use ST_GeomFromText() function
                         value = "ST_GeomFromText('" + value + "', " + SRID + ")"
 
                     # if value is text, so add two quotes, e.g.: 'TEST_'
-                    elif not value.isdigit():
+                    elif isinstance(value, str):
                         value = "'" + value + "'"
 
+                    values.append(value)
 
+                    #
 
-                    values += value
-
-                    # while is not the end of the list, add ", " in the final of the columns and values
-                    if i != last_index:
-                        columns += ", "
-                        values += ", "
+                    # value = str(value)
+                    #
+                    # # if the value is a geometry in WKT, so we get the SRID and use the function
+                    # # ST_GeomFromText() to add the geometry
+                    # if 'geometry' in data_type:
+                    #     # findall(r'\d+', data_type) will return a list of numbers in string: ['4326']
+                    #     # findall(r'\d+', data_type)[0] will get the only element: '4326'
+                    #     SRID = findall(r'\d+', data_type)[0]
+                    #
+                    #     value = "ST_GeomFromText('" + value + "', " + SRID + ")"
+                    #
+                    # # if value is text, so add two quotes, e.g.: 'TEST_'
+                    # elif not value.isdigit():
+                    #     value = "'" + value + "'"
+                    #
+                    # values += value
 
                 else:
                     # print("\nColumn ", field_of_table["column_name"], " of the table ", table_name,
@@ -184,27 +179,25 @@ class AddPoint(BaseHandler):
                     #       "\npoint: ", point)
                     pass
 
-        # print(columns)
-        # print(values)
+        columns = ", ".join(columns)
+        # masks = ", ".join(masks)
+
+        values = [str(value) for value in values]
+        values = ", ".join(values)
 
         insert_query_text = "INSERT INTO " + table_name + " (" + columns + ") VALUES (" + values + ")"
 
-        # print("\ninsert_query_text: ", insert_query_text)
-
-        # cur.execute("INSERT INTO test (num, data) VALUES (%s, %s)", (100, "abc'def"))
-
         self.PGSQLConn.__PGSQL_CURSOR__.execute(insert_query_text)
 
+
+        # insert_query_text = "INSERT INTO " + table_name + " (" + columns + ") VALUES (" + masks + ")"
+
+        # cur.execute("INSERT INTO test (num, data) VALUES (%s, %s)", (100, "abc'def"))
+        # self.PGSQLConn.__PGSQL_CURSOR__.execute(insert_query_text, values)
+
+
+        # save modifications in DB
         self.PGSQLConn.commit()
-
-
-
-
-
-
-
-
-
 
         self.set_and_send_status(status=201, reason="Added the points")
 
