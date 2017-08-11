@@ -110,7 +110,6 @@ class AddPoint(BaseHandler):
 
         list_of_columns_name_and_data_types = self.PGSQLConn.get_columns_name_and_data_types_from_table(table_name=table_name,
                                                                                                         transform_geom_bin_in_wkt=False)
-        # columns_name = self.PGSQLConn.get_list_of_columns_name_in_str(list_of_columns_name_and_data_types)
 
         columns = []
         values = []
@@ -132,7 +131,7 @@ class AddPoint(BaseHandler):
                     columns.append(column_name)
                     # masks.append("%s")
 
-                    # if the value is a geometry in WKT, so we get the SRID and use the function
+                    # if the value is a geometry (in WKT), so we get the SRID and use the function
                     # ST_GeomFromText() to add the geometry
                     if 'geometry' in data_type:
                         # findall(r'\d+', data_type) will return a list of numbers in string: ['4326']
@@ -182,13 +181,16 @@ class AddPoint(BaseHandler):
         values = [str(value) for value in values]
         values = ", ".join(values)
 
+        # something like this:
+        # INSERT INTO tb_places (id_street, geom, number, name)
+        # VALUES (22, ST_GeomFromText('POINT(-518.644 -269.159)', 4326), 34, 'TEST_1')
         insert_query_text = "INSERT INTO " + table_name + " (" + columns + ") VALUES (" + values + ")"
 
-        self.PGSQLConn.__PGSQL_CURSOR__.execute(insert_query_text)
+        # self.PGSQLConn.__PGSQL_CURSOR__.execute(insert_query_text)
+        self.PGSQLConn.execute(insert_query_text)
 
 
         # insert_query_text = "INSERT INTO " + table_name + " (" + columns + ") VALUES (" + masks + ")"
-
         # cur.execute("INSERT INTO test (num, data) VALUES (%s, %s)", (100, "abc'def"))
         # self.PGSQLConn.__PGSQL_CURSOR__.execute(insert_query_text, values)
 

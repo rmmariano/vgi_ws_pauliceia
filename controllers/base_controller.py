@@ -22,7 +22,7 @@ class BaseHandler(RequestHandler):
     # Static list to be added the all valid urls to one handler
     urls = []
 
-    # PGSQLConn = PGSQLConnection()
+    # DB connection
     PGSQLConn = PGSQLConnection.get_instance()
 
     def get_the_json_validated(self):
@@ -59,9 +59,3 @@ class BaseHandler(RequestHandler):
     def set_and_send_status(self, status, reason=""):
         self.set_status(status, reason=reason)
         self.write(dumps({"status": status, "statusText": reason}))
-
-    # def insert(self, insert_query_text):
-    #
-    #     status = self.__PGSQL_CURSOR__.execute(insert_query_text)
-    #
-    #     return status

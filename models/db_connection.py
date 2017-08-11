@@ -101,7 +101,18 @@ class PGSQLConnection:
         print("\nFilled the __LIST_TABLES_INFORMATION__")
 
     def commit(self):
+        """
+            Just do the COMMIT operator in DB
+        """
+
         self.PGSQL_CONNECTION.commit()
+
+    def execute(self, sql_command_text):
+        """
+            Just execute the SQL command text, like a INSERT
+        """
+
+        self.__PGSQL_CURSOR__.execute(sql_command_text)
 
     def get_columns_name_and_data_types_from_table(self, table_name, transform_geom_bin_in_wkt=False):
         list_of_columns_name_and_data_types = []
@@ -145,10 +156,17 @@ class PGSQLConnection:
         return columns_name
 
     def search_in_database_by_query(self, query_text):
+        """
+            Execute the `query_text`, with the result list, if some value has a datetime/data type,
+            so it`s necessary to convert in a human readable string
+        """
+
         # do the search in database
         self.__PGSQL_CURSOR__.execute(query_text)
         results_list = self.__PGSQL_CURSOR__.fetchall()
 
+        # on the result list, if some value has a datetime/data type
+        # so it`s necessary to convert in a human readable string
         for dict_result in results_list:
             # dict_result is one of the results
             for key, value in dict_result.items():
