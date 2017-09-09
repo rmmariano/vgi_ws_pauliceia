@@ -34,6 +34,8 @@ from psycopg2.extras import RealDictCursor
 from copy import deepcopy
 
 from modules.design_pattern import Singleton
+from modules.exception import GeomFormatException
+from modules.util import convert_str_to_dict
 from settings.db_settings import __PGSQL_CONNECTION_SETTINGS__, __LIST_TABLES_INFORMATION__
 
 
@@ -114,7 +116,9 @@ class PGSQLConnection:
 
         self.__PGSQL_CURSOR__.execute(sql_command_text)
 
-    def get_columns_name_and_data_types_from_table(self, table_name, transform_geom_bin_in_wkt=False):
+    def get_columns_name_and_data_types_from_table(self, table_name, transform_geom_bin_in_wkt=False,
+                                                   geom_format="wkt"):
+
         list_of_columns_name_and_data_types = []
 
         # Just search in list (O(n)), if the table_name was added in set (self.__TABLES_NAMES__)
@@ -132,8 +136,17 @@ class PGSQLConnection:
                             data_type = a_field["data_type"]
 
                             if "geometry" in data_type:
-                                a_field["column_name"] = "ST_AsText("+a_field["column_name"]+") as " + a_field["column_name"]
-                                                        # something like: ST_AsText(geom) as geom
+
+                                if geom_format == "wkt":
+                                    a_field["column_name"] = "ST_AsText("+a_field["column_name"]+") as " + a_field["column_name"]
+                                                            # something like: ST_AsText(geom) as geom
+
+                                elif geom_format == "geojson":
+                                    a_field["column_name"] = "ST_AsGeoJSON(" + a_field["column_name"] + ") as " + a_field["column_name"]
+                                                            # something like: ST_AsGeoJSON(geom) as geom
+
+                                else:
+                                    raise GeomFormatException("Invalid geom format: " + geom_format)
 
                     break
 
@@ -155,7 +168,7 @@ class PGSQLConnection:
 
         return columns_name
 
-    def search_in_database_by_query(self, query_text):
+    def search_in_database_by_query(self, query_text, geom_format="wkt"):
         """
             Execute the `query_text`, with the result list, if some value has a datetime/data type,
             so it`s necessary to convert in a human readable string
@@ -175,5 +188,19 @@ class PGSQLConnection:
                 # a human readable string
                 if isinstance(value, (datetime, date)):
                     dict_result[key] = value.isoformat()
+
+
+        if geom_format == "wkt":
+            # is default
+            pass
+
+        elif geom_format == "geojson":
+
+            # convert the geoms in dict, because by default the postgresql returns in string the geojson
+            for result in results_list:
+                result["geom"] = convert_str_to_dict(result["geom"])
+
+        else:
+            raise GeomFormatException("Invalid geom format: " + geom_format)
 
         return results_list

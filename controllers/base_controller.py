@@ -66,7 +66,7 @@ class BaseHandler(RequestHandler):
 
         # exceptional case: when I want all values
         if str_query.lower() == "all":
-            return {"id": "all"}
+            return "all"
 
         # normal case: I have a query
         prequery = str_query.replace(r"[", "").replace(r"]", "").split(",")
@@ -78,3 +78,53 @@ class BaseHandler(RequestHandler):
             query[parts[0]] = parts[1]
 
         return query
+
+    def param_in_list_of_columns_name_and_data_types(self, param, list_of_columns_name_and_data_types):
+
+        for column_and_type in list_of_columns_name_and_data_types:
+            if column_and_type["column_name"] == param:
+                return True
+
+        return False
+
+    def exist_paramns_in_table_columns(self, list_of_columns_name_and_data_types, QUERY_PARAM):
+
+        invalid_columns = []
+
+        if QUERY_PARAM != "all":
+            # add in invalid_columns the columns that doesn't exits in the table
+            for param in QUERY_PARAM:
+                if not self.param_in_list_of_columns_name_and_data_types(param, list_of_columns_name_and_data_types):
+                    invalid_columns.append(param)
+        # if QUERY_PARAM == "all", do nothing, it is default
+
+        # not invalid_columns (if invalid_columns is empty, return True else return False)
+        result = {"exist_paramns_in_table_columns": not invalid_columns,
+                  "invalid_columns": invalid_columns}
+
+        return result
+
+    def build_where_clause_with_params(self, QUERY_PARAM):
+
+        str_where = ""
+
+        if QUERY_PARAM != "all":
+
+            list_where = []
+            for condiction in QUERY_PARAM:
+
+                if QUERY_PARAM[condiction].isdigit():
+                    c = condiction + "=" + QUERY_PARAM[condiction]
+                else:
+                    # if text
+                    c = "lower(" + condiction + ") LIKE lower('%" + QUERY_PARAM[condiction] + "%')"
+                    # something line: lower(name) LIKE lower('%Prefeitura%')
+
+                list_where.append(c)
+
+            # join the condictions separating by AND
+            str_where = " WHERE " + (" AND ".join(list_where))
+
+        # if QUERY_PARAM == "all", do nothing, it is default
+
+        return str_where

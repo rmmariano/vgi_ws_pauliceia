@@ -6,6 +6,8 @@
 """
 
 
+from tornado.web import HTTPError, MissingArgumentError
+
 from .base_controller import *
 from bson import json_util
 from re import findall
@@ -64,75 +66,72 @@ class SimplePageHandler(BaseHandler):
 # http://guillaumevincent.com/2013/02/12/Basic-authentication-on-Tornado-with-a-decorator.html
 
 
-
 class GetGeometry(BaseHandler):
 
-    urls = [
-            # r"/get/geometry/(?P<table_name>[^\/]+)/(?P<id_value>[^\/]+)/",
-            # r"/get/geometry/(?P<table_name>[^\/]+)/(?P<id_value>[^\/]+)",
-            r"/get/geometry/(?P<table_name>[^\/]+)/?(?P<params>[A-Za-z0-9-]+)?",
-            ]
+    urls = [r"/get/geometry/(?P<table_name>[^\/]+)/?(?P<params>[A-Za-z0-9-]+)?"]
 
-    # Examples:
-    # http://localhost:8888/get/geometry/tb_places/?q=[id=45,b=2,c=abE]&format=json&type=1
-    # http://localhost:8888/get/geometry/tb_places/?q=[id=45]
-    # http://localhost:8888/get/geometry/tb_places/?q=all
-
-    # def get(self, table_name, id_value):
     def get(self, table_name, params):
 
         parameters = self.request.arguments
 
         # get the query from URL in form of dictionary
         QUERY_PARAM = self.get_dict_from_query_str(self.get_argument("q"))
-
         # remove the query, because I have already got it
         del parameters["q"]
 
+        ####################################################################################
 
-        id_value = QUERY_PARAM["id"]
+        # try to get the arguments
+        try:
+            geom_format = self.get_argument("geom_format")
+        except MissingArgumentError:
+            # if geom_format is undefined, return "wkt" by default
+            geom_format = "wkt"
 
+        ####################################################################################
 
-        list_of_columns_name_and_data_types = self.PGSQLConn.get_columns_name_and_data_types_from_table(table_name=table_name,
-                                                                                                        transform_geom_bin_in_wkt=True)
-        columns_name = self.PGSQLConn.get_list_of_columns_name_in_str(list_of_columns_name_and_data_types)
+        try:
+            list_of_columns_name_and_data_types = self.PGSQLConn.get_columns_name_and_data_types_from_table(table_name=table_name,
+                                                                                                            transform_geom_bin_in_wkt=True,
+                                                                                                            geom_format=geom_format)
+        except GeomFormatException as e:
+            raise HTTPError(400, e.value)
+
+        ####################################################################################
+
+        # verify if the params are valid
+        result = self.exist_paramns_in_table_columns(list_of_columns_name_and_data_types, QUERY_PARAM)
+
+        if not result["exist_paramns_in_table_columns"]:
+            raise HTTPError(400, "Invalid arguments: " + str(result["invalid_columns"]))
+
+        ####################################################################################
+
+        # get the columns in string to put in query
+        str_columns_names = self.PGSQLConn.get_list_of_columns_name_in_str(list_of_columns_name_and_data_types)
 
         # something like: 'SELECT id, id_street, ST_AsText(geom) as geom FROM tb_places'
-        query_text = "SELECT " + columns_name + " FROM " + table_name
+        query_text = "SELECT " + str_columns_names + " FROM " + table_name
 
+        ####################################################################################
 
+        # add the where clause in the end of query
+        query_text += self.build_where_clause_with_params(QUERY_PARAM)
 
-        #######
-
-
-
-        if id_value.isdigit():
-            # if id_value is a number, so search by it
-            query_text += " WHERE id=" + id_value
-        elif id_value.strip().lower() == "all":
-            # the query get all values by default
-            pass
-        else:
-            # if id_value is not a digit and is not "all", so raise error
-            self.set_and_send_status(status=400,
-                                     reason="Invalid argument: " + id_value)
-            return
-
-
-
-
-        #######
-
+        ####################################################################################
 
         # run the query
-        results_list = self.PGSQLConn.search_in_database_by_query(query_text)
+        results_list = self.PGSQLConn.search_in_database_by_query(query_text, geom_format=geom_format)
+        # 'SELECT id, id_street, ST_AsText(geom) as geom, number, original_number, name, first_day,
+        # first_month, first_year, last_day, last_month, last_year, description, source, id_user, date
+        # FROM tb_places WHERE id=45 AND lower(name) LIKE lower(\\'%Pref%\\')'
 
         # if result is empty
         if not results_list:
             # Not found values
-            self.set_and_send_status(status=404,
-                                     reason="Not found anything with id: " + id_value)
-            return
+            raise HTTPError(404, "Not found anything with the arguments")
+
+        ####################################################################################
 
         # if is all ok, return the result as JSON (convert dict to JSON)
         self.write(dumps(results_list, default=json_util.default))
