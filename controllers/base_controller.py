@@ -59,3 +59,22 @@ class BaseHandler(RequestHandler):
     def set_and_send_status(self, status, reason=""):
         self.set_status(status, reason=reason)
         self.write(dumps({"status": status, "statusText": reason}))
+
+    def get_dict_from_query_str(self, str_query):
+
+        str_query = str_query.strip()
+
+        # exceptional case: when I want all values
+        if str_query.lower() == "all":
+            return {"id": "all"}
+
+        # normal case: I have a query
+        prequery = str_query.replace(r"[", "").replace(r"]", "").split(",")
+
+        # with each part of the string, create a dictionary
+        query = {}
+        for condiction in prequery:
+            parts = condiction.split("=")
+            query[parts[0]] = parts[1]
+
+        return query

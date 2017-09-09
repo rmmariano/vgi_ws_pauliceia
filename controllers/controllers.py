@@ -59,12 +59,39 @@ class SimplePageHandler(BaseHandler):
         self.render("simple_page/simple_page.html", **context)
 
 
-class GetPoint(BaseHandler):
+# Login
+# http://www.tornadoweb.org/en/stable/guide/security.html
+# http://guillaumevincent.com/2013/02/12/Basic-authentication-on-Tornado-with-a-decorator.html
 
-    urls = [r"/get/point/(?P<table_name>[^\/]+)/(?P<id_value>[^\/]+)/",
-            r"/get/point/(?P<table_name>[^\/]+)/(?P<id_value>[^\/]+)"]
 
-    def get(self, table_name, id_value):
+
+class GetGeometry(BaseHandler):
+
+    urls = [
+            # r"/get/geometry/(?P<table_name>[^\/]+)/(?P<id_value>[^\/]+)/",
+            # r"/get/geometry/(?P<table_name>[^\/]+)/(?P<id_value>[^\/]+)",
+            r"/get/geometry/(?P<table_name>[^\/]+)/?(?P<params>[A-Za-z0-9-]+)?",
+            ]
+
+    # Examples:
+    # http://localhost:8888/get/geometry/tb_places/?q=[id=45,b=2,c=abE]&format=json&type=1
+    # http://localhost:8888/get/geometry/tb_places/?q=[id=45]
+    # http://localhost:8888/get/geometry/tb_places/?q=all
+
+    # def get(self, table_name, id_value):
+    def get(self, table_name, params):
+
+        parameters = self.request.arguments
+
+        # get the query from URL in form of dictionary
+        QUERY_PARAM = self.get_dict_from_query_str(self.get_argument("q"))
+
+        # remove the query, because I have already got it
+        del parameters["q"]
+
+
+        id_value = QUERY_PARAM["id"]
+
 
         list_of_columns_name_and_data_types = self.PGSQLConn.get_columns_name_and_data_types_from_table(table_name=table_name,
                                                                                                         transform_geom_bin_in_wkt=True)
@@ -73,10 +100,16 @@ class GetPoint(BaseHandler):
         # something like: 'SELECT id, id_street, ST_AsText(geom) as geom FROM tb_places'
         query_text = "SELECT " + columns_name + " FROM " + table_name
 
+
+
+        #######
+
+
+
         if id_value.isdigit():
             # if id_value is a number, so search by it
             query_text += " WHERE id=" + id_value
-        elif id_value.lower() == "all":
+        elif id_value.strip().lower() == "all":
             # the query get all values by default
             pass
         else:
@@ -84,6 +117,12 @@ class GetPoint(BaseHandler):
             self.set_and_send_status(status=400,
                                      reason="Invalid argument: " + id_value)
             return
+
+
+
+
+        #######
+
 
         # run the query
         results_list = self.PGSQLConn.search_in_database_by_query(query_text)

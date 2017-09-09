@@ -47,7 +47,7 @@ class HttpServerApplication(Application):
         # All the classes added in the under list have to extend of the BaseHandler class
         # because it that have the static variable called urls
         handler_classes = [
-            IndexHandler, SimplePageHandler, GetPoint, AddPoint
+            IndexHandler, SimplePageHandler, GetGeometry, AddPoint
         ]
 
         # Create a new handler ( (url, class) ) using the URL of the list of urls with its class correspondent
@@ -67,6 +67,10 @@ class HttpServerApplication(Application):
             # static_path=join(dirname(__file__), "static"),
             xsrf_cookies=False,
             cookie_secret="__TODO:_GENERATE_YOUR_OWN_RANDOM_VALUE_HERE__",
+
+            # how to generate: https://gist.github.com/didip/823887
+            # cookie_secret="3A6Wo4vSRbS9DGQGkVB2xnm3YoieY0xTvKaxS1d1SxM=",
+
             # login_url="/auth/login",
             debug=options.debug,
             current_year=CURRENT_YEAR,
