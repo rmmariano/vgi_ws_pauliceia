@@ -174,6 +174,11 @@ class AddPoint(BaseHandler):
         columns = []
         values = []
         # masks = []
+        tags = []
+
+
+
+
 
         for point in points_to_add:
 
@@ -182,6 +187,7 @@ class AddPoint(BaseHandler):
                 column_name = field_of_table["column_name"]
                 data_type = field_of_table["data_type"]
 
+                # if column_name in point:
                 value = point[column_name]
 
                 # to insert is necessary the column name exist in point dict
@@ -208,25 +214,6 @@ class AddPoint(BaseHandler):
 
                     values.append(value)
 
-                    #
-
-                    # value = str(value)
-                    #
-                    # # if the value is a geometry in WKT, so we get the SRID and use the function
-                    # # ST_GeomFromText() to add the geometry
-                    # if 'geometry' in data_type:
-                    #     # findall(r'\d+', data_type) will return a list of numbers in string: ['4326']
-                    #     # findall(r'\d+', data_type)[0] will get the only element: '4326'
-                    #     SRID = findall(r'\d+', data_type)[0]
-                    #
-                    #     value = "ST_GeomFromText('" + value + "', " + SRID + ")"
-                    #
-                    # # if value is text, so add two quotes, e.g.: 'TEST_'
-                    # elif not value.isdigit():
-                    #     value = "'" + value + "'"
-                    #
-                    # values += value
-
                 else:
                     # print("\nColumn ", field_of_table["column_name"], " of the table ", table_name,
                     #       " was not declared in point dict or column name is 'id' or the value is None. ",
@@ -234,6 +221,11 @@ class AddPoint(BaseHandler):
                     #       "\nvalue: ", value,
                     #       "\npoint: ", point)
                     pass
+
+
+
+
+
 
         columns = ", ".join(columns)
         # masks = ", ".join(masks)
