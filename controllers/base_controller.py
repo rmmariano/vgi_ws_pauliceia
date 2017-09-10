@@ -6,7 +6,7 @@
 """
 
 
-from tornado.web import RequestHandler, HTTPError
+from tornado.web import RequestHandler, HTTPError, MissingArgumentError
 from json import dumps, loads
 
 # Let importing ALL
@@ -63,6 +63,15 @@ class BaseHandler(RequestHandler):
         if raise_error:
             raise HTTPError(status, reason)
 
+    def get_param_geometry_format(self):
+        try:
+            geom_format = self.get_argument("geom_format")
+        except MissingArgumentError:
+            # if geom_format is undefined, return "wkt" by default
+            geom_format = "wkt"
+
+        return geom_format
+
     def get_dict_from_query_str(self, str_query):
 
         str_query = str_query.strip()
@@ -82,13 +91,21 @@ class BaseHandler(RequestHandler):
 
         return query
 
-    def param_in_list_of_columns_name_and_data_types(self, param, list_of_columns_name_and_data_types):
+    def key_exist_in_list_of_columns_name_and_data_types(self, key, list_of_columns_name_and_data_types):
 
         for column_and_type in list_of_columns_name_and_data_types:
-            if column_and_type["column_name"] == param:
+            if column_and_type["column_name"] == key:
                 return True
 
         return False
+
+    def get_data_type_of_column_in_list_of_columns_name_and_data_types(self, column_name, list_of_columns_name_and_data_types):
+
+        for column_and_type in list_of_columns_name_and_data_types:
+            if column_and_type["column_name"] == column_name:
+                return column_and_type["data_type"]
+
+        return None
 
     def exist_paramns_in_table_columns(self, list_of_columns_name_and_data_types, QUERY_PARAM):
 
@@ -97,7 +114,7 @@ class BaseHandler(RequestHandler):
         if QUERY_PARAM != "all":
             # add in invalid_columns the columns that doesn't exits in the table
             for param in QUERY_PARAM:
-                if not self.param_in_list_of_columns_name_and_data_types(param, list_of_columns_name_and_data_types):
+                if not self.key_exist_in_list_of_columns_name_and_data_types(param, list_of_columns_name_and_data_types):
                     invalid_columns.append(param)
         # if QUERY_PARAM == "all", do nothing, it is default
 

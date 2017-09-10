@@ -9,20 +9,17 @@
 {% end %}
 
 {% block body %}
-	{{ text }}
 
+    <button id="not_found_path" type="button" class="btn btn-default" aria-label="Left Align">
+        not found /add/point/ <span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span>
+    </button>
 
-<button id="not_found_path" type="button" class="btn btn-default" aria-label="Left Align">
-    not found /add/point/ <span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span>
-</button>
+    <button id="insert_one_point" type="button" class="btn btn-default" aria-label="Left Align">
+        insert one point <span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span>
+    </button>
 
-<button id="insert_one_point" type="button" class="btn btn-default" aria-label="Left Align">
-    insert one point <span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span>
-</button>
-
-<button id="button3" type="button" class="btn btn-default" aria-label="Left Align">
-    button3 <span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span>
-</button>
-
+    <button id="insert_one_point_in_geojson" type="button" class="btn btn-default" aria-label="Left Align">
+        insert one point in geojson <span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span>
+    </button>
 
 {% end %}
