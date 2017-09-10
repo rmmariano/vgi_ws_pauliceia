@@ -152,7 +152,8 @@ class PGSQLConnection:
 
         return list_of_columns_name_and_data_types
 
-    def get_list_of_columns_name_in_str(self, list_of_columns_name_and_data_types):
+    def get_list_of_columns_name_in_str(self, list_of_columns_name_and_data_types, get_srid=True,
+                                                table_name="", schema="public"):
 
         columns_name = ""
         last_index = len(list_of_columns_name_and_data_types) - 1
@@ -161,6 +162,10 @@ class PGSQLConnection:
             result = list_of_columns_name_and_data_types[i]
 
             columns_name += result["column_name"]
+
+            # if there is a geometry column, so get the SRID together
+            if "geometry" in result["data_type"] and get_srid:
+                columns_name += ", Find_SRID('" + schema + "', '" + table_name + "', 'geom') as srid "
 
             # put a comma in the end of string while is not the last column
             if i != last_index:

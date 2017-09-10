@@ -71,17 +71,19 @@ class GetGeometry(BaseHandler):
     urls = [r"/get/geometry/(?P<table_name>[^\/]+)/?(?P<params>[A-Za-z0-9-]+)?"]
 
     def get(self, table_name, params):
-
-        parameters = self.request.arguments
-
-        # get the query from URL in form of dictionary
-        QUERY_PARAM = self.get_dict_from_query_str(self.get_argument("q"))
-        # remove the query, because I have already got it
-        del parameters["q"]
+        # parameters = self.request.arguments
 
         ####################################################################################
+        # getting the parameters
 
-        # try to get the arguments
+        try:
+            query = self.get_argument("q")
+        except MissingArgumentError:
+            self.set_and_send_status(status=400,
+                                     reason="It's necessary at least the query parameter (q)",
+                                     raise_error=False)
+            return
+
         try:
             geom_format = self.get_argument("geom_format")
         except MissingArgumentError:
@@ -90,12 +92,22 @@ class GetGeometry(BaseHandler):
 
         ####################################################################################
 
+        # get the query from URL in form of dictionary
+        QUERY_PARAM = self.get_dict_from_query_str(query)
+        # remove the query, because I have already got it
+        # del parameters["q"]
+
+        ####################################################################################
+
         try:
             list_of_columns_name_and_data_types = self.PGSQLConn.get_columns_name_and_data_types_from_table(table_name=table_name,
                                                                                                             transform_geom_bin_in_wkt=True,
                                                                                                             geom_format=geom_format)
         except GeomFormatException as e:
-            raise HTTPError(400, e.value)
+            self.set_and_send_status(status=400, reason=e.value,
+                                     raise_error=False)
+                                     # raise_error=True)
+            return
 
         ####################################################################################
 
@@ -103,12 +115,19 @@ class GetGeometry(BaseHandler):
         result = self.exist_paramns_in_table_columns(list_of_columns_name_and_data_types, QUERY_PARAM)
 
         if not result["exist_paramns_in_table_columns"]:
-            raise HTTPError(400, "Invalid arguments: " + str(result["invalid_columns"]))
+            self.set_and_send_status(status=400,
+                                     reason="Invalid arguments: " + str(result["invalid_columns"]),
+                                     raise_error=False)
+                                    # raise_error=True)
+            return
 
         ####################################################################################
 
         # get the columns in string to put in query
-        str_columns_names = self.PGSQLConn.get_list_of_columns_name_in_str(list_of_columns_name_and_data_types)
+        str_columns_names = self.PGSQLConn.get_list_of_columns_name_in_str(list_of_columns_name_and_data_types,
+                                                                           get_srid=True,
+                                                                           table_name=table_name,
+                                                                           schema="public")
 
         # something like: 'SELECT id, id_street, ST_AsText(geom) as geom FROM tb_places'
         query_text = "SELECT " + str_columns_names + " FROM " + table_name
@@ -122,14 +141,17 @@ class GetGeometry(BaseHandler):
 
         # run the query
         results_list = self.PGSQLConn.search_in_database_by_query(query_text, geom_format=geom_format)
-        # 'SELECT id, id_street, ST_AsText(geom) as geom, number, original_number, name, first_day,
-        # first_month, first_year, last_day, last_month, last_year, description, source, id_user, date
+        # 'SELECT id, id_street, ST_AsText(geom) as geom, ... date
         # FROM tb_places WHERE id=45 AND lower(name) LIKE lower(\\'%Pref%\\')'
 
         # if result is empty
         if not results_list:
             # Not found values
-            raise HTTPError(404, "Not found anything with the arguments")
+            self.set_and_send_status(status=404,
+                                     reason="Not found anything with the arguments",
+                                     raise_error=False)
+                                    # raise_error=True)
+            return
 
         ####################################################################################
 

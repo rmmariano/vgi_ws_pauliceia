@@ -56,9 +56,12 @@ class BaseHandler(RequestHandler):
 
         return search
 
-    def set_and_send_status(self, status, reason=""):
+    def set_and_send_status(self, status=404, reason="", raise_error=False):
         self.set_status(status, reason=reason)
         self.write(dumps({"status": status, "statusText": reason}))
+
+        if raise_error:
+            raise HTTPError(status, reason)
 
     def get_dict_from_query_str(self, str_query):
 
