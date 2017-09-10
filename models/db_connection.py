@@ -34,7 +34,7 @@ from psycopg2.extras import RealDictCursor
 from copy import deepcopy
 
 from modules.design_pattern import Singleton
-from modules.exception import GeomFormatException
+from modules.exception import GeomFormatException, DoesntExistTableOfTagsException
 from modules.util import convert_str_to_dict
 from settings.db_settings import __PGSQL_CONNECTION_SETTINGS__, __LIST_TABLES_INFORMATION__
 
@@ -152,6 +152,21 @@ class PGSQLConnection:
 
         return list_of_columns_name_and_data_types
 
+    def get_table_of_tags_from_table_name(self, table_name):
+
+        # Just search in list (O(n)), if the table_name was added in set (self.__TABLES_NAMES__)
+        if table_name in self.__TABLES_NAMES__:
+
+            for ONE_TABLE_INF in __LIST_TABLES_INFORMATION__:
+                if ONE_TABLE_INF["table_name"] == table_name:
+
+                    if "table_of_tags" in ONE_TABLE_INF:
+                        return ONE_TABLE_INF["table_of_tags"]
+                    else:
+                        raise DoesntExistTableOfTagsException("Doesn't exist table of tags in table: " + table_name)
+
+        return None
+
     def get_list_of_columns_name_in_str(self, list_of_columns_name_and_data_types, get_srid=True,
                                                 table_name="", schema="public"):
 
@@ -194,13 +209,11 @@ class PGSQLConnection:
                 if isinstance(value, (datetime, date)):
                     dict_result[key] = value.isoformat()
 
-
         if geom_format == "wkt":
             # is default
             pass
 
         elif geom_format == "geojson":
-
             # convert the geoms in dict, because by default the postgresql returns in string the geojson
             for result in results_list:
                 result["geom"] = convert_str_to_dict(result["geom"])

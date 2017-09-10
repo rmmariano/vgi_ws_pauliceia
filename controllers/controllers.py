@@ -184,6 +184,8 @@ class AddPoint(BaseHandler):
         list_of_columns_name_and_data_types = self.PGSQLConn.get_columns_name_and_data_types_from_table(table_name=table_name,
                                                                                                         transform_geom_bin_in_wkt=False)
 
+        ####################################################################################
+
         columns = []
         values = []
         # masks = []
@@ -219,37 +221,8 @@ class AddPoint(BaseHandler):
                                 value = "ST_GeomFromText('" + value + "', " + SRID + ")"
                             elif geom_format == "geojson":
                                 # we can use ST_GeomFromText() function, to add WKT in DB
-                                geojson = str(value)
-
-                                geojson = geojson.replace("'", '"')
-
+                                geojson = str(value).replace("'", '"')
                                 value = "ST_SetSRID(ST_GeomFromGeoJSON('" + geojson + "'), " + SRID + ")"
-
-                                print(value)
-
-
-
-                                #
-                                '''
-
-                                insert into testbert1(id, location)
-                                values(1, ST_SetSRID(
-                                ST_GeomFromGeoJSON(
-                                                    '{"type":"Polygon",
-                                                    "coordinates":[[[-114.017347,51.048005],
-                                                    [-114.014433,51.047927],[-114.005899,51.045381],
-                                                    [-114.017347,51.048005]]]}'
-                                                    ),
-                                                     4326))
-                                                     
-                                                     
-                                ST_SetSRID(ST_GeomFromGeoJSON(''),4326))
-
-
-                                '''
-                                #
-
-
                             else:
                                 self.set_and_send_status(status=400,
                                                          reason="Invalid geom_format: " + geom_format,
@@ -267,79 +240,55 @@ class AddPoint(BaseHandler):
                     tags.append({column_name: value})
 
 
-        # for point in geometries_to_add:
-        #
-        #     for field_of_table in list_of_columns_name_and_data_types:
-        #
-        #         column_name = field_of_table["column_name"]
-        #         data_type = field_of_table["data_type"]
-        #
-        #         # if column_name in point:
-        #         value = point[column_name]
-        #
-        #         # to insert is necessary the column name exist in point dict
-        #         # the column name shouldn't be "id", because is a PK autoincrement
-        #         # if there is a None value, so doesn't add it
-        #         if column_name in point and column_name != "id" and value is not None:
-        #             columns.append(column_name)
-        #             # masks.append("%s")
-        #
-        #             # if the value is a geometry (in WKT), so we get the SRID and use the function
-        #             # ST_GeomFromText() to add the geometry
-        #             if 'geometry' in data_type:
-        #                 # findall(r'\d+', data_type) will return a list of numbers in string: ['4326']
-        #                 # findall(r'\d+', data_type)[0] will get the only element: '4326'
-        #                 SRID = findall(r'\d+', data_type)[0]
-        #
-        #                 # the value is a geometry in WKT, so to add it in DB
-        #                 # we can use ST_GeomFromText() function
-        #                 value = "ST_GeomFromText('" + value + "', " + SRID + ")"
-        #
-        #             # if value is text, so add two quotes, e.g.: 'TEST_'
-        #             elif isinstance(value, str):
-        #                 value = "'" + value + "'"
-        #
-        #             values.append(value)
-        #
-        #         else:
-        #             # print("\nColumn ", field_of_table["column_name"], " of the table ", table_name,
-        #             #       " was not declared in point dict or column name is 'id' or the value is None. ",
-        #             #       "\ncolumn_name: ", column_name,
-        #             #       "\nvalue: ", value,
-        #             #       "\npoint: ", point)
-        #             pass
+            ####################################################################################
+            # building the values
 
+            columns = ", ".join(columns)
+            # masks = ", ".join(masks)
 
-        ####################################################################################
-        # inserting geometry in DB
+            values = [str(value) for value in values]
+            values = ", ".join(values)
 
-        columns = ", ".join(columns)
-        # masks = ", ".join(masks)
+            ####################################################################################
+            # inserting geometry in DB
 
-        values = [str(value) for value in values]
-        values = ", ".join(values)
+            # something like this:
+            # INSERT INTO tb_places (id_street, geom, number, name)
+            # VALUES (22, ST_GeomFromText('POINT(-518.644 -269.159)', 4326), 34, 'TEST_1')
+            insert_query_text = "INSERT INTO " + table_name + " (" + columns + ") VALUES (" + values + ")"
 
-        # something like this:
-        # INSERT INTO tb_places (id_street, geom, number, name)
-        # VALUES (22, ST_GeomFromText('POINT(-518.644 -269.159)', 4326), 34, 'TEST_1')
-        insert_query_text = "INSERT INTO " + table_name + " (" + columns + ") VALUES (" + values + ")"
+            # self.PGSQLConn.__PGSQL_CURSOR__.execute(insert_query_text)
+            self.PGSQLConn.execute(insert_query_text)
 
-        # self.PGSQLConn.__PGSQL_CURSOR__.execute(insert_query_text)
-        self.PGSQLConn.execute(insert_query_text)
+            ####################################################################################
+            # inserting tags in DB
 
+            if "tags" in geometry:
 
-        ####################################################################################
-        # inserting tags in DB
+                table_of_tags = ""
 
-        # TODO: add tags in DB
-        # for tag in tags:
-        #     print(tag)
+                try:
+                    table_of_tags = self.PGSQLConn.get_table_of_tags_from_table_name(table_name)
+                except DoesntExistTableOfTagsException as e:
+                    self.set_and_send_status(status=404,
+                                             reason=e.value,
+                                             raise_error=False)
+                    return
+
+                list_tags = geometry["tags"]
 
 
 
-        # insert_query_text = "INSERT INTO " + table_name + " (" + columns + ") VALUES (" + masks + ")"
-        # cur.execute("INSERT INTO test (num, data) VALUES (%s, %s)", (100, "abc'def"))
-        # self.PGSQLConn.__PGSQL_CURSOR__.execute(insert_query_text, values)
+
+                if table_of_tags is not None:
+
+                    insert_query_text = "INSERT INTO " + table_of_tags + " (" + columns + ") VALUES (" + values + ")"
+
+                    # TODO: add tags in DB
+                    # for tag in tags:
+                    #     print(tag)
+
+
 
 
         ####################################################################################
