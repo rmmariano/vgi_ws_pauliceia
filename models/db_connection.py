@@ -109,6 +109,10 @@ class PGSQLConnection:
 
         self.PGSQL_CONNECTION.commit()
 
+    # def fetchone(self):
+    #
+    #     return self.__PGSQL_CURSOR__.fetchone()
+
     def execute(self, sql_command_text):
         """
             Just execute the SQL command text, like a INSERT
@@ -222,3 +226,19 @@ class PGSQLConnection:
             raise GeomFormatException("Invalid geom format: " + geom_format)
 
         return results_list
+
+
+    def insert_in_database_by_query(self, insert_query_text):
+        """
+            Insert the insert_query_text in DB and returns the id generated from this row
+        """
+
+        # do a INSERT in DB
+        self.__PGSQL_CURSOR__.execute(insert_query_text)
+        self.commit()
+
+        # select the last value (id) from last row inserted
+        self.__PGSQL_CURSOR__.execute('SELECT LASTVAL()')
+        last_row_id = self.__PGSQL_CURSOR__.fetchone()['lastval']
+
+        return last_row_id

@@ -189,7 +189,7 @@ class AddPoint(BaseHandler):
         columns = []
         values = []
         # masks = []
-        tags = []
+        invalid_columns = []  # columns that is in JSON, but doesn't exist in DB
 
         for geometry in geometries_to_add:
             for key_field in geometry:
@@ -198,7 +198,7 @@ class AddPoint(BaseHandler):
                 value = geometry[key_field]
 
                 # to insert is necessary the column name exist in point dict
-                if self.key_exist_in_list_of_columns_name_and_data_types(key_field,
+                if self.key_exist_in_list_of_columns_name_and_data_types(column_name,
                                                                          list_of_columns_name_and_data_types):
 
                     # the column name shouldn't be "id", because is a PK autoincrement
@@ -236,8 +236,8 @@ class AddPoint(BaseHandler):
                         columns.append(column_name)
                         values.append(value)
                 else:
-                    # if the column doens't exist in list of columns, so it is a tag
-                    tags.append({column_name: value})
+                    # columns that is in JSON, but doesn't exist in DB
+                    invalid_columns.append({column_name: value})
 
 
             ####################################################################################
@@ -255,17 +255,16 @@ class AddPoint(BaseHandler):
             # something like this:
             # INSERT INTO tb_places (id_street, geom, number, name)
             # VALUES (22, ST_GeomFromText('POINT(-518.644 -269.159)', 4326), 34, 'TEST_1')
-            insert_query_text = "INSERT INTO " + table_name + " (" + columns + ") VALUES (" + values + ")"
+            insert_query_text = "INSERT INTO " + table_name + " (" + columns + ") VALUES (" + values + ");"
 
-            # self.PGSQLConn.__PGSQL_CURSOR__.execute(insert_query_text)
-            self.PGSQLConn.execute(insert_query_text)
+            id_generated_geom = self.PGSQLConn.insert_in_database_by_query(insert_query_text)
+
+            print(id_generated_geom)
 
             ####################################################################################
             # inserting tags in DB
 
             if "tags" in geometry:
-
-                table_of_tags = ""
 
                 try:
                     table_of_tags = self.PGSQLConn.get_table_of_tags_from_table_name(table_name)
@@ -275,19 +274,60 @@ class AddPoint(BaseHandler):
                                              raise_error=False)
                     return
 
-                list_tags = geometry["tags"]
-
-
-
-
+                # if exist a table of tags for the table name passed
                 if table_of_tags is not None:
 
-                    insert_query_text = "INSERT INTO " + table_of_tags + " (" + columns + ") VALUES (" + values + ")"
+                    list_tags = geometry["tags"]
 
-                    # TODO: add tags in DB
-                    # for tag in tags:
-                    #     print(tag)
+                    list_columns_types_tags = self.PGSQLConn.get_columns_name_and_data_types_from_table(table_name=table_of_tags,
+                                                                                                        transform_geom_bin_in_wkt=False)
 
+                    columns = []
+                    values = []
+
+                    # insert_query_text = "INSERT INTO " + table_of_tags + " (" + columns + ") VALUES (" + values + ")"
+                    for tag in list_tags:
+                        for key_field in tag:
+                            column_name = key_field
+                            value = geometry[key_field]
+
+                            # to insert is necessary the column name exist in point dict
+                            if self.key_exist_in_list_of_columns_name_and_data_types(column_name,
+                                                                                     list_columns_types_tags):
+
+                                # the column name shouldn't be "id", because is a PK autoincrement
+                                # if there is a None value, so doesn't add it
+                                if column_name != "id" and value is not None:
+
+                                    # get the data type of the column
+                                    # data_type = self.get_data_type_of_column_in_list_of_columns_name_and_data_types(column_name,
+                                    #                                                                                 list_columns_types_tags)
+                                    #
+                                    # # if the value is a geometry, so we get the SRID and use the function
+                                    # # and use a specific function to add (WKT or geojson)
+                                    # if 'integer' in data_type:
+                                    #
+                                    # # if value is text, so add two quotes, e.g.: 'TEST_'
+                                    # elif isinstance(value, str):
+                                    #     value = "'" + value + "'"
+
+                                    value = "'" + value + "'"
+
+                                    columns.append(column_name)
+                                    values.append(value)
+                            else:
+                                # columns that is in JSON, but doesn't exist in DB
+                                invalid_columns.append({column_name: value})
+
+
+
+                        print(tag)
+
+                        print(insert_query_text)
+
+
+
+        print(invalid_columns)
 
 
 
@@ -295,7 +335,7 @@ class AddPoint(BaseHandler):
         # saving modifications and sending the successful message
 
         # save modifications in DB
-        self.PGSQLConn.commit()
+        # self.PGSQLConn.commit()
 
         self.set_and_send_status(status=201, reason="Added the points")
 
