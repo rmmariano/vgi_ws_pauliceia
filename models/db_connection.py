@@ -36,6 +36,7 @@ from copy import deepcopy
 from modules.design_pattern import Singleton
 from modules.exception import GeomFormatException, DoesntExistTableOfTagsException
 from modules.util import convert_str_to_dict
+from modules.sql import SQLHelper
 from settings.db_settings import __PGSQL_CONNECTION_SETTINGS__, __LIST_TABLES_INFORMATION__
 
 
@@ -68,6 +69,9 @@ class PGSQLConnection:
         # represented by a dictionary in python
         self.__PGSQL_CURSOR__ = self.PGSQL_CONNECTION.cursor(cursor_factory=RealDictCursor)
 
+        # create the SQL Helper passing the cursor
+        self.__SQL_HELPER__ = SQLHelper(self.__PGSQL_CURSOR__)
+
         self.__generate_a_set_with_tables_names__()
         self.__fill_list_tables_information__()
 
@@ -88,17 +92,10 @@ class PGSQLConnection:
         """
 
         for ONE_TABLE_INF in __LIST_TABLES_INFORMATION__:
+            table_name = ONE_TABLE_INF["table_name"]
 
-            query_text = "SELECT a.attname as column_name, format_type(a.atttypid, a.atttypmod) as data_type " \
-                         "FROM pg_attribute a JOIN pg_class b ON (a.attrelid = b.relfilenode) " \
-                         "WHERE b.relname = '" + str(ONE_TABLE_INF["table_name"]) + "' and a.attstattarget = -1;"
-
-            self.__PGSQL_CURSOR__.execute(query_text)
-            list_of_columns_name_and_data_types = self.__PGSQL_CURSOR__.fetchall()
-
-            ONE_TABLE_INF["list_of_columns_name_and_data_types"] = list_of_columns_name_and_data_types
-
-            # print(ONE_TABLE_INF)
+            ONE_TABLE_INF["list_of_columns_name_and_data_types"] = self.__SQL_HELPER__.get_columns_name_and_data_types_of_table_name(table_name)
+            ONE_TABLE_INF["list_of_constraints"] = self.__SQL_HELPER__.get_constraints_of_table_name(table_name)
 
         print("\nFilled the __LIST_TABLES_INFORMATION__")
 

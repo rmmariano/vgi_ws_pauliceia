@@ -299,18 +299,6 @@ class AddPoint(BaseHandler):
                                 # if there is a None value, so doesn't add it
                                 if column_name != "id" and value is not None:
 
-                                    # get the data type of the column
-                                    # data_type = self.get_data_type_of_column_in_list_of_columns_name_and_data_types(column_name,
-                                    #                                                                                 list_columns_types_tags)
-                                    #
-                                    # # if the value is a geometry, so we get the SRID and use the function
-                                    # # and use a specific function to add (WKT or geojson)
-                                    # if 'integer' in data_type:
-                                    #
-                                    # # if value is text, so add two quotes, e.g.: 'TEST_'
-                                    # elif isinstance(value, str):
-                                    #     value = "'" + value + "'"
-
                                     value = "'" + value + "'"
 
                                     columns.append(column_name)
