@@ -106,10 +106,6 @@ class PGSQLConnection:
 
         self.PGSQL_CONNECTION.commit()
 
-    # def fetchone(self):
-    #
-    #     return self.__PGSQL_CURSOR__.fetchone()
-
     def execute(self, sql_command_text):
         """
             Just execute the SQL command text, like a INSERT

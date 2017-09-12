@@ -259,8 +259,6 @@ class AddPoint(BaseHandler):
 
             id_generated_geom = self.PGSQLConn.insert_in_database_by_query(insert_query_text)
 
-            print(id_generated_geom)
-
             ####################################################################################
             # inserting tags in DB
 
@@ -289,7 +287,7 @@ class AddPoint(BaseHandler):
                     for tag in list_tags:
                         for key_field in tag:
                             column_name = key_field
-                            value = geometry[key_field]
+                            value = tag[key_field]
 
                             # to insert is necessary the column name exist in point dict
                             if self.key_exist_in_list_of_columns_name_and_data_types(column_name,
@@ -307,9 +305,31 @@ class AddPoint(BaseHandler):
                                 # columns that is in JSON, but doesn't exist in DB
                                 invalid_columns.append({column_name: value})
 
+                        ####################################################################################
+                        # building the values
+
+                        # adding the foreign key column
+                        columns.append("fk_id_node")
+                        values.append(id_generated_geom)
+
+                        # concatenate the lists
+                        columns = ", ".join(columns)
+
+                        values = [str(value) for value in values]
+                        values = ", ".join(values)
+
+                        ####################################################################################
+                        # inserting geometry in DB
+
+                        # something like this:
+                        # INSERT INTO node_tags (k, v, fk_id_node) VALUES ('tipo1', 'tipo111', 75);
+                        insert_query_text = "INSERT INTO node_tags (k, v, fk_id_node) VALUES ('tipo1', 'tipo111', 75);"
 
 
-                        print(tag)
+
+                        insert_query_text = "INSERT INTO node_tags ({0}) VALUES ({1})".format(columns, values)
+
+
 
                         print(insert_query_text)
 
