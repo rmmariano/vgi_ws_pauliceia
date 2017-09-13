@@ -11,7 +11,7 @@ class GeomFormatException(Exception):
         return repr(self.value)
 
 
-class DoesntExistTableOfTagsException(Exception):
+class DoesntExistTableException(Exception):
 
     def __init__(self, value):
         self.value = value

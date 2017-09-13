@@ -6,8 +6,6 @@
 """
 
 
-from tornado.web import HTTPError, MissingArgumentError
-
 from .base_controller import *
 from bson import json_util
 from re import findall
@@ -186,12 +184,14 @@ class AddPoint(BaseHandler):
 
         ####################################################################################
 
-        columns = []
-        values = []
-        # masks = []
         invalid_columns = []  # columns that is in JSON, but doesn't exist in DB
 
         for geometry in geometries_to_add:
+
+            columns = []
+            values = []
+            # masks = []
+
             for key_field in geometry:
 
                 column_name = key_field
@@ -237,17 +237,19 @@ class AddPoint(BaseHandler):
                         values.append(value)
                 else:
                     # columns that is in JSON, but doesn't exist in DB
-                    invalid_columns.append({column_name: value})
+                    # how tags is a key word, so it is a exception
+                    if column_name != "tags":
+                        invalid_columns.append({column_name: value})
 
 
             ####################################################################################
             # building the values
 
-            columns = ", ".join(columns)
+            str_columns = ", ".join(columns)
             # masks = ", ".join(masks)
 
-            values = [str(value) for value in values]
-            values = ", ".join(values)
+            str_values = [str(value) for value in values]
+            str_values = ", ".join(str_values)
 
             ####################################################################################
             # inserting geometry in DB
@@ -255,7 +257,7 @@ class AddPoint(BaseHandler):
             # something like this:
             # INSERT INTO tb_places (id_street, geom, number, name)
             # VALUES (22, ST_GeomFromText('POINT(-518.644 -269.159)', 4326), 34, 'TEST_1')
-            insert_query_text = "INSERT INTO " + table_name + " (" + columns + ") VALUES (" + values + ");"
+            insert_query_text = "INSERT INTO " + table_name + " (" + str_columns + ") VALUES (" + str_values + ");"
 
             id_generated_geom = self.PGSQLConn.insert_in_database_by_query(insert_query_text)
 
@@ -266,7 +268,7 @@ class AddPoint(BaseHandler):
 
                 try:
                     table_of_tags = self.PGSQLConn.get_table_of_tags_from_table_name(table_name)
-                except DoesntExistTableOfTagsException as e:
+                except DoesntExistTableException as e:
                     self.set_and_send_status(status=404,
                                              reason=e.value,
                                              raise_error=False)
@@ -280,11 +282,11 @@ class AddPoint(BaseHandler):
                     list_columns_types_tags = self.PGSQLConn.get_columns_name_and_data_types_from_table(table_name=table_of_tags,
                                                                                                         transform_geom_bin_in_wkt=False)
 
-                    columns = []
-                    values = []
-
-                    # insert_query_text = "INSERT INTO " + table_of_tags + " (" + columns + ") VALUES (" + values + ")"
                     for tag in list_tags:
+
+                        columns = []
+                        values = []
+
                         for key_field in tag:
                             column_name = key_field
                             value = tag[key_field]
@@ -296,7 +298,6 @@ class AddPoint(BaseHandler):
                                 # the column name shouldn't be "id", because is a PK autoincrement
                                 # if there is a None value, so doesn't add it
                                 if column_name != "id" and value is not None:
-
                                     value = "'" + value + "'"
 
                                     columns.append(column_name)
@@ -308,31 +309,28 @@ class AddPoint(BaseHandler):
                         ####################################################################################
                         # building the values
 
+                        # getting the foreign key
+                        constraint = self.PGSQLConn.get_constraint_about_table_of_tags_from_table_name(table_of_tags, table_name)
+                        fk_column_name = constraint["column_name"]
+
                         # adding the foreign key column
-                        columns.append("fk_id_node")
+                        columns.append(fk_column_name)
                         values.append(id_generated_geom)
 
                         # concatenate the lists
-                        columns = ", ".join(columns)
+                        str_columns = ", ".join(columns)
 
-                        values = [str(value) for value in values]
-                        values = ", ".join(values)
+                        str_values = [str(value) for value in values]
+                        str_values = ", ".join(str_values)
 
                         ####################################################################################
                         # inserting geometry in DB
 
                         # something like this:
                         # INSERT INTO node_tags (k, v, fk_id_node) VALUES ('tipo1', 'tipo111', 75);
-                        insert_query_text = "INSERT INTO node_tags (k, v, fk_id_node) VALUES ('tipo1', 'tipo111', 75);"
+                        insert_query_text = "INSERT INTO node_tags ({0}) VALUES ({1})".format(str_columns, str_values)
 
-
-
-                        insert_query_text = "INSERT INTO node_tags ({0}) VALUES ({1})".format(columns, values)
-
-
-
-                        print(insert_query_text)
-
+                        self.PGSQLConn.insert_in_database_by_query(insert_query_text)
 
 
         print(invalid_columns)
@@ -346,4 +344,3 @@ class AddPoint(BaseHandler):
         # self.PGSQLConn.commit()
 
         self.set_and_send_status(status=201, reason="Added the points")
-

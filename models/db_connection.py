@@ -34,7 +34,7 @@ from psycopg2.extras import RealDictCursor
 from copy import deepcopy
 
 from modules.design_pattern import Singleton
-from modules.exception import GeomFormatException, DoesntExistTableOfTagsException
+from modules.exception import GeomFormatException, DoesntExistTableException
 from modules.util import convert_str_to_dict
 from modules.sql import SQLHelper
 from settings.db_settings import __PGSQL_CONNECTION_SETTINGS__, __LIST_TABLES_INFORMATION__
@@ -160,7 +160,30 @@ class PGSQLConnection:
                     if "table_of_tags" in ONE_TABLE_INF:
                         return ONE_TABLE_INF["table_of_tags"]
                     else:
-                        raise DoesntExistTableOfTagsException("Doesn't exist table of tags in table: " + table_name)
+                        raise DoesntExistTableException("Doesn't exist table of tags in table: " + table_name)
+
+        return None
+
+    def get_constraint_about_table_of_tags_from_table_name(self, table_of_tags_with_fk, original_table_name):
+        """
+        :param original_table_name: original table
+        :param table_of_tags_with_fk: the table that contains the FK from original table
+        :return: the constraint of the relation, or a error if doesn't the relation, or None if the
+        """
+
+        # Just search in list (O(n)), if the table_name was added in set (self.__TABLES_NAMES__)
+        if table_of_tags_with_fk in self.__TABLES_NAMES__:
+
+            for ONE_TABLE_INF in __LIST_TABLES_INFORMATION__:
+                if ONE_TABLE_INF["table_name"] == table_of_tags_with_fk:
+
+                    list_of_constraints = ONE_TABLE_INF["list_of_constraints"]
+
+                    for constraint in list_of_constraints:
+                        if constraint["foreign_table_name"] == original_table_name:
+                            return constraint
+
+                    raise DoesntExistTableException("Doesn't exist table of tags (with FK) '{0}' that indicates the table '{1}'".format(table_of_tags_with_fk, original_table_name))
 
         return None
 
