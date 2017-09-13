@@ -56,9 +56,15 @@ class BaseHandler(RequestHandler):
 
         return search
 
-    def set_and_send_status(self, status=404, reason="", raise_error=False):
+    def set_and_send_status(self, status=404, reason="", extra={}, raise_error=False):
+
+        response_json = {"status": status, "statusText": reason}
+
+        if extra != {}:
+            response_json["extra"] = extra
+
         self.set_status(status, reason=reason)
-        self.write(dumps({"status": status, "statusText": reason}))
+        self.write(dumps(response_json))
 
         if raise_error:
             raise HTTPError(status, reason)
@@ -148,3 +154,17 @@ class BaseHandler(RequestHandler):
         # if QUERY_PARAM == "all", do nothing, it is default
 
         return str_where
+
+
+    # extra methods
+
+    def create_extra_message_to_invalid_columns(self, invalid_columns):
+        extra = {}
+
+        # if is not empty
+        if invalid_columns:
+            invalid_columns = ", ".join(invalid_columns)
+            extra["message"] = "There is(are) invalid column(s). Please check if is(are) correct(s)"
+            extra["invalid_columns"] = invalid_columns
+
+        return extra

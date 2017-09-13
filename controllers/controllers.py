@@ -129,13 +129,17 @@ class GetGeometry(BaseHandler):
                                                                            table_name=table_name,
                                                                            schema="public")
 
+        where = self.build_where_clause_with_params(QUERY_PARAM)
+
+
         # something like: 'SELECT id, id_street, ST_AsText(geom) as geom FROM tb_places'
-        query_text = "SELECT " + str_columns_names + " FROM " + table_name
+        # query_text = "SELECT " + str_columns_names + " FROM " + table_name
+        query_text = "SELECT {0} FROM {1} {2};".format(str_columns_names, table_name, where)
 
         ####################################################################################
 
         # add the where clause in the end of query
-        query_text += self.build_where_clause_with_params(QUERY_PARAM)
+        # query_text += self.build_where_clause_with_params(QUERY_PARAM)
 
         ####################################################################################
 
@@ -333,14 +337,12 @@ class AddPoint(BaseHandler):
                         self.PGSQLConn.insert_in_database_by_query(insert_query_text)
 
 
-        print(invalid_columns)
+        ####################################################################################
+        # if there are invalid columns, create a extra message to it
 
-
+        extra = self.create_extra_message_to_invalid_columns(invalid_columns)
 
         ####################################################################################
-        # saving modifications and sending the successful message
+        # sending the successful message
 
-        # save modifications in DB
-        # self.PGSQLConn.commit()
-
-        self.set_and_send_status(status=201, reason="Added the points")
+        self.set_and_send_status(status=201, reason="Added the points", extra=extra)

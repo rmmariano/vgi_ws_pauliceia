@@ -22,6 +22,10 @@ $(document).ready(function(){
 
         request.done(function(data, textStatus, information) {
             console.log("done :D ");
+
+            // convert string into JSON
+            data = $.parseJSON(data);
+
             console.log(data);
         });
 
@@ -71,6 +75,10 @@ $(document).ready(function(){
 
         request.done(function(data, textStatus, information) {
             console.log("done :D ");
+
+            // convert string into JSON
+            data = $.parseJSON(data);
+
             console.log(data);
         });
 
@@ -122,6 +130,10 @@ $(document).ready(function(){
 
         request.done(function(data, textStatus, information) {
             console.log("done :D ");
+
+            // convert string into JSON
+            data = $.parseJSON(data);
+
             console.log(data);
         });
 
@@ -175,6 +187,10 @@ $(document).ready(function(){
 
         request.done(function(data, textStatus, information) {
             console.log("done :D ");
+
+            // convert string into JSON
+            data = $.parseJSON(data);
+
             console.log(data);
         });
 
