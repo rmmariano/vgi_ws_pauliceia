@@ -1,0 +1,44 @@
+{% extends "../../base/base.html" %}
+
+{% block page_header %}
+{% end %}
+
+{% block body %}
+
+    <form action="/auth/login/" method="post" id="login_form">
+        <fieldset>
+            <label for="username">Username</label>
+            <input class="text-input" id="username" name="username" type="text" value="">
+        </fieldset>
+
+        <fieldset>
+            <label for="password">Password</label>
+            <input class="text-input" id="password" name="password" type="password" value="">
+        </fieldset>
+
+        <fieldset>
+            <span class="errormessage"></span>
+        </fieldset>
+
+        <div id="form_btn">
+            {% module xsrf_form_html() %}
+            <input id="signin-btn" class="btn btn-blue" type="submit" value="Sign In" tabindex="3">
+        </div>
+    </form>
+
+{% end %}
+
+<!--
+
+    {% if error %}
+        <span style="color: red"> Error: {{ error }} </span><p>
+    {% end %}
+
+<form action="/auth/login" method="POST">
+    Email: <input name="email" type="text"><br>
+    Password: <input name="password" type="password"><br>
+
+    {% module xsrf_form_html() %}
+    <input type="submit">
+</form>
+-->

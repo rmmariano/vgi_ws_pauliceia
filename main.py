@@ -47,6 +47,7 @@ class HttpServerApplication(Application):
         # All the classes added in the under list have to extend of the BaseHandler class
         # because it that have the static variable called urls
         handler_classes = [
+            AuthLogin, AuthLogout,
             IndexHandler,
             PageExampleCRUDGet, PageExampleCRUDAdd, PageExampleCRUDRemove,
             GetGeometry, AddGeometry, RemoveGeometry,
@@ -69,10 +70,11 @@ class HttpServerApplication(Application):
             template_path=join(dirname(__file__), "templates"),
             # static_path=join(dirname(__file__), "static"),
             xsrf_cookies=False,
-            cookie_secret="__TODO:_GENERATE_YOUR_OWN_RANDOM_VALUE_HERE__",
+            # cookie_secret="__TODO:_GENERATE_YOUR_OWN_RANDOM_VALUE_HERE__",
 
             # how to generate: https://gist.github.com/didip/823887
-            # cookie_secret="3A6Wo4vSRbS9DGQGkVB2xnm3YoieY0xTvKaxS1d1SxM=",
+            cookie_secret="3A6Wo4vSRbS9DGQGkVB2xnm3YoieY0xTvKaxS1d1SxM=",
+            login_url="/auth/login/",
 
             # login_url="/auth/login",
             debug=options.debug,

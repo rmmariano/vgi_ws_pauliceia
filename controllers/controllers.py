@@ -5,6 +5,7 @@
     Responsible module to create handlers.
 """
 
+import tornado
 
 from .base_controller import *
 from bson import json_util
@@ -89,29 +90,85 @@ class PageExampleCRUDRemove(BaseHandler):
 
 # authentication
 
-class Login(BaseHandler):
+
+class AuthLogout(BaseHandler):
+
+    urls = [r"/auth/logout/", r"/auth/logout"]
+
+    def get(self):
+        self.clear_cookie("user")
+        # redirect = self.get_argument("next", "/")
+        # self.redirect(redirect)
+        self.render("example/auth/logout.html")
+
+
+class AuthLogin(BaseHandler):
     # Login
     # http://www.tornadoweb.org/en/stable/guide/security.html
     # http://guillaumevincent.com/2013/02/12/Basic-authentication-on-Tornado-with-a-decorator.html
+    # https://github.com/tornadoweb/tornado/tree/stable/demos/blog
 
-
-    urls = [r"/login/", r"/login"]
-
-    def get(self):
-        pass
-
-
-class Logout(BaseHandler):
-
-    urls = [r"/logout/", r"/logout"]
+    urls = [r"/auth/login/", r"/auth/login"]
 
     def get(self):
-        pass
+        try:
+            errormessage = self.get_argument("error")
+        except:
+            errormessage = ""
+
+        self.render("example/auth/login.html", errormessage=errormessage)
+
+    def check_permission(self, password, username):
+        if username == "admin" and password == "admin":
+            return True
+        return False
+
+    def post(self):
+        username = self.get_argument("username", "")
+        password = self.get_argument("password", "")
+        auth = self.check_permission(password, username)
+
+        if auth:
+            self.set_current_user(username)
+            redirect = self.get_argument("next", u"/")
+            self.redirect(redirect)
+        else:
+            error_msg = u"?error=" + tornado.escape.url_escape("Login incorrect")
+            self.redirect(u"/auth/login/" + error_msg)
+
+    def set_current_user(self, user):
+        if user:
+            self.set_secure_cookie("user", tornado.escape.json_encode(user))
+        else:
+            self.clear_cookie("user")
+
+
+class MainHandlerNeedLogin(BaseHandler):
+
+    # nl = need login
+    urls = [r"/main/nl/", r"/main/nl"]
+
+    @tornado.web.authenticated
+    def get(self):
+        username = tornado.escape.xhtml_escape(self.current_user)
+        self.render("example/main/mainneedlogin.html", username=username)
+
+
+class MainHandlerDontNeedLogin(BaseHandler):
+
+    # dnl = don't need login
+    urls = [r"/main/dnl/", r"/main/dnl"]
+
+    def get(self):
+        username = tornado.escape.xhtml_escape(self.current_user)
+        self.render("example/main/maindontneedlogin.html", username=username)
+
 
 
 
 # geometry
 
+# TODO: GET WITH TAGS (?)
 class GetGeometry(BaseHandler):
 
     urls = [r"/get/geometry/(?P<table_name>[^\/]+)/?(?P<params>[A-Za-z0-9-]+)?"]
