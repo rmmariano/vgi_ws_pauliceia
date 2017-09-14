@@ -14,7 +14,7 @@ $(document).ready(function(){
 
 
         var request = $.ajax({
-            url: "/add/point/",
+            url: "/add/geometry/",
             method: "POST",
             data: JSON.stringify(points_to_add),
             contentType: "application/json"
@@ -67,7 +67,7 @@ $(document).ready(function(){
 
 
         var request = $.ajax({
-            url: "/add/point/tb_places",
+            url: "/add/geometry/tb_places",
             method: "POST",
             data: JSON.stringify(points_to_add),
             contentType: "application/json"
@@ -122,7 +122,7 @@ $(document).ready(function(){
         ];
 
         var request = $.ajax({
-            url: "/add/point/tb_places/?geom_format=geojson",
+            url: "/add/geometry/tb_places/?geom_format=geojson",
             method: "POST",
             data: JSON.stringify(points_to_add),
             contentType: "application/json"
@@ -179,7 +179,7 @@ $(document).ready(function(){
 
 
         var request = $.ajax({
-            url: "/add/point/tb_places",
+            url: "/add/geometry/tb_places",
             method: "POST",
             data: JSON.stringify(points_to_add),
             contentType: "application/json"

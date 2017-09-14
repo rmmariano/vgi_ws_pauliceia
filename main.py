@@ -49,7 +49,8 @@ class HttpServerApplication(Application):
         handler_classes = [
             IndexHandler,
             PageExampleCRUDGet, PageExampleCRUDAdd, PageExampleCRUDRemove,
-            GetGeometry, AddPoint, RemoveGeometry
+            GetGeometry, AddGeometry, RemoveGeometry,
+            GetTag, AddTag, RemoveTag,
         ]
 
         # Create a new handler ( (url, class) ) using the URL of the list of urls with its class correspondent
