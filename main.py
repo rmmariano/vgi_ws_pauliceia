@@ -47,7 +47,7 @@ class HttpServerApplication(Application):
         # All the classes added in the under list have to extend of the BaseHandler class
         # because it that have the static variable called urls
         handler_classes = [
-            IndexHandler, SimplePageHandler, GetGeometry, AddPoint
+            IndexHandler, PageExampleCRUDGet, PageExampleCRUDAdd, GetGeometry, AddPoint
         ]
 
         # Create a new handler ( (url, class) ) using the URL of the list of urls with its class correspondent

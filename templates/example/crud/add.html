@@ -1,0 +1,36 @@
+{% extends "../../base/base.html" %}
+
+{% block js %}
+    <script type="text/javascript" src="/static/js/example/crud/add.js"></script>
+{% end %}
+
+{% block page_header %}
+    {{ text }}
+{% end %}
+
+{% block body %}
+
+    <ul class="list-group">
+        <li class="list-group-item">
+            <button id="not_found_path" type="button" class="btn btn-default" aria-label="Left Align">
+                not found /add/point/ <span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span>
+            </button>
+        </li>
+        <li class="list-group-item">
+            <button id="insert_one_point" type="button" class="btn btn-default" aria-label="Left Align">
+                insert one point <span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span>
+            </button>
+        </li>
+        <li class="list-group-item">
+            <button id="insert_one_point_in_geojson" type="button" class="btn btn-default" aria-label="Left Align">
+                insert one point in geojson <span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span>
+            </button>
+        </li>
+        <li class="list-group-item">
+            <button id="insert_one_point_with_tags" type="button" class="btn btn-default" aria-label="Left Align">
+                insert one point with tags <span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span>
+            </button>
+        </li>
+    </ul>
+
+{% end %}

@@ -1,0 +1,60 @@
+{% extends "../../base/base.html" %}
+
+{% block js %}
+{% end %}
+
+{% block page_header %}
+    {{ text }}
+{% end %}
+
+{% block body %}
+
+    <ul class="list-group">
+        <li class="list-group-item">
+            <a href="/get/geometry/" class="btn btn-default">
+                not found <span class="glyphicon glyphicon-collapse-up" aria-hidden="true"></span>
+            </a>
+        </li>
+        <li class="list-group-item">
+            <a href="/get/geometry/tb_places/?q=[id=45]" class="btn btn-default">
+                find point with id 45 <span class="glyphicon glyphicon-collapse-up" aria-hidden="true"></span>
+            </a>
+        </li>
+        <li class="list-group-item">
+            <a href="/get/geometry/tb_places/?q=[id=2]" class="btn btn-default">
+                not found point with id 2 <span class="glyphicon glyphicon-collapse-up" aria-hidden="true"></span>
+            </a>
+        </li>
+        <li class="list-group-item">
+            <a href="/get/geometry/tb_places/?q=all" class="btn btn-default">
+                get all points <span class="glyphicon glyphicon-collapse-up" aria-hidden="true"></span>
+            </a>
+        </li>
+        <li class="list-group-item">
+            <a href="/get/geometry/tb_places/?q=[source=guia]" class="btn btn-default">
+                find point with source=guia (default wkt) <span class="glyphicon glyphicon-collapse-up" aria-hidden="true"></span>
+            </a>
+        </li>
+        <li class="list-group-item">
+            <a href="/get/geometry/tb_places/?q=[id=49]&geom_format=wkt" class="btn btn-default">
+                find point with id 49 in wkt <span class="glyphicon glyphicon-collapse-up" aria-hidden="true"></span>
+            </a>
+        </li>
+        <li class="list-group-item">
+            <a href="/get/geometry/tb_places/?q=[id=45,name=Pref]&geom_format=geojson" class="btn btn-default">
+                find point with id 45 and name=Pref in geojson <span class="glyphicon glyphicon-collapse-up" aria-hidden="true"></span>
+            </a>
+        </li>
+        <li class="list-group-item">
+            <a href="/get/geometry/tb_places/?q=[id=45]&geom_format=wkttt" class="btn btn-default">
+                invalid wkttt <span class="glyphicon glyphicon-collapse-up" aria-hidden="true"></span>
+            </a>
+        </li>
+        <li class="list-group-item">
+            <a href="/get/geometry/tb_places/dok3" class="btn btn-default">
+                sintax error em dok3 <span class="glyphicon glyphicon-collapse-up" aria-hidden="true"></span>
+            </a>
+        </li>
+    </ul>
+
+{% end %}

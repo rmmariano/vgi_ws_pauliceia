@@ -41,22 +41,34 @@ class IndexHandler(BaseHandler):
         self.render("index.html", **context)
 
 
-class SimplePageHandler(BaseHandler):
-    """
-        Responsible class to render the Home Page (Index).
-    """
+class PageExampleCRUDGet(BaseHandler):
 
     # A list of URLs that can be use for the HTTP methods
-    urls = [r"/", r"/simple_page", r"/simple_page/"]
+    urls = [r"/", r"/example/crud/get", r"/example/crud/get/"]
 
     def get(self):
 
         # Some fictional context
-        context = {"text": "Welcome"}
+        context = {"text": "Example of getting service"}
 
         # The ** before the context do that dictionary is "break" in the positions of the render method
         # The under line is like this: self.render("index.html", text = "Welcome")
-        self.render("simple_page/simple_page.html", **context)
+        self.render("example/crud/get.html", **context)
+
+
+class PageExampleCRUDAdd(BaseHandler):
+
+    # A list of URLs that can be use for the HTTP methods
+    urls = [r"/", r"/example/crud/add", r"/example/crud/add/"]
+
+    def get(self):
+
+        # Some fictional context
+        context = {"text": "Example of addition service"}
+
+        # The ** before the context do that dictionary is "break" in the positions of the render method
+        # The under line is like this: self.render("index.html", text = "Welcome")
+        self.render("example/crud/add.html", **context)
 
 
 # Login
@@ -81,12 +93,6 @@ class GetGeometry(BaseHandler):
                                      reason="It's necessary at least the query parameter (q)",
                                      raise_error=False)
             return
-
-        # try:
-        #     geom_format = self.get_argument("geom_format")
-        # except MissingArgumentError:
-        #     # if geom_format is undefined, return "wkt" by default
-        #     geom_format = "wkt"
 
         geom_format = self.get_param_geometry_format()
 
@@ -164,6 +170,7 @@ class GetGeometry(BaseHandler):
 
 
 class AddPoint(BaseHandler):
+    # TODO: create a ADD OR UPDATE HERE
 
     urls = [
             # r"/add/point/(?P<table_name>[^\/]+)",
@@ -346,3 +353,95 @@ class AddPoint(BaseHandler):
         # sending the successful message
 
         self.set_and_send_status(status=201, reason="Added the points", extra=extra)
+
+
+class RemoveGeometry(BaseHandler):
+
+    urls = [r"/get/remove/(?P<table_name>[^\/]+)/?(?P<params>[A-Za-z0-9-]+)?"]
+
+    def get(self, table_name, params):
+
+        ####################################################################################
+        # getting the parameters
+
+        try:
+            query = self.get_argument("q")
+        except MissingArgumentError:
+            self.set_and_send_status(status=400,
+                                     reason="It's necessary at least the query parameter (q)",
+                                     raise_error=False)
+            return
+
+        geom_format = self.get_param_geometry_format()
+
+        ####################################################################################
+
+        # get the query from URL in form of dictionary
+        QUERY_PARAM = self.get_dict_from_query_str(query)
+        # remove the query, because I have already got it
+        # del parameters["q"]
+
+        ####################################################################################
+
+        try:
+            list_of_columns_name_and_data_types = self.PGSQLConn.get_columns_name_and_data_types_from_table(table_name=table_name,
+                                                                                                            transform_geom_bin_in_wkt=True,
+                                                                                                            geom_format=geom_format)
+        except GeomFormatException as e:
+            self.set_and_send_status(status=400, reason=e.value,
+                                     raise_error=False)
+                                     # raise_error=True)
+            return
+
+        ####################################################################################
+
+        # verify if the params are valid
+        result = self.exist_paramns_in_table_columns(list_of_columns_name_and_data_types, QUERY_PARAM)
+
+        if not result["exist_paramns_in_table_columns"]:
+            self.set_and_send_status(status=400,
+                                     reason="Invalid arguments: " + str(result["invalid_columns"]),
+                                     raise_error=False)
+                                    # raise_error=True)
+            return
+
+        ####################################################################################
+
+        # get the columns in string to put in query
+        str_columns_names = self.PGSQLConn.get_list_of_columns_name_in_str(list_of_columns_name_and_data_types,
+                                                                           get_srid=True,
+                                                                           table_name=table_name,
+                                                                           schema="public")
+
+        where = self.build_where_clause_with_params(QUERY_PARAM)
+
+
+        # something like: 'SELECT id, id_street, ST_AsText(geom) as geom FROM tb_places'
+        # query_text = "SELECT " + str_columns_names + " FROM " + table_name
+        query_text = "SELECT {0} FROM {1} {2};".format(str_columns_names, table_name, where)
+
+        ####################################################################################
+
+        # add the where clause in the end of query
+        # query_text += self.build_where_clause_with_params(QUERY_PARAM)
+
+        ####################################################################################
+
+        # run the query
+        results_list = self.PGSQLConn.search_in_database_by_query(query_text, geom_format=geom_format)
+        # 'SELECT id, id_street, ST_AsText(geom) as geom, ... date
+        # FROM tb_places WHERE id=45 AND lower(name) LIKE lower(\\'%Pref%\\')'
+
+        # if result is empty
+        if not results_list:
+            # Not found values
+            self.set_and_send_status(status=404,
+                                     reason="Not found anything with the arguments",
+                                     raise_error=False)
+                                    # raise_error=True)
+            return
+
+        ####################################################################################
+
+        # if is all ok, return the result as JSON (convert dict to JSON)
+        self.write(dumps(results_list, default=json_util.default))
