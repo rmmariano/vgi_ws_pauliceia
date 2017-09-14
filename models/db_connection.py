@@ -243,7 +243,6 @@ class PGSQLConnection:
 
         return results_list
 
-
     def insert_in_database_by_query(self, insert_query_text):
         """
             Insert the insert_query_text in DB and returns the id generated from this row
@@ -258,3 +257,15 @@ class PGSQLConnection:
         last_row_id = self.__PGSQL_CURSOR__.fetchone()['lastval']
 
         return last_row_id
+
+    def delete_in_database_by_query(self, delete_query_text):
+
+        # do a INSERT in DB
+        self.__PGSQL_CURSOR__.execute(delete_query_text)
+
+        # get account of rows deleted
+        rowcount = self.__PGSQL_CURSOR__.rowcount
+
+        self.commit()
+
+        return rowcount

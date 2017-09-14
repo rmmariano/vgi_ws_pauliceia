@@ -71,6 +71,18 @@ class PageExampleCRUDAdd(BaseHandler):
         self.render("example/crud/add.html", **context)
 
 
+class PageExampleCRUDRemove(BaseHandler):
+    # A list of URLs that can be use for the HTTP methods
+    urls = [r"/", r"/example/crud/remove", r"/example/crud/remove/"]
+
+    def get(self):
+        # Some fictional context
+        context = {"text": "Example of removing service"}
+
+        # The ** before the context do that dictionary is "break" in the positions of the render method
+        # The under line is like this: self.render("index.html", text = "Welcome")
+        self.render("example/crud/remove.html", **context)
+
 # Login
 # http://www.tornadoweb.org/en/stable/guide/security.html
 # http://guillaumevincent.com/2013/02/12/Basic-authentication-on-Tornado-with-a-decorator.html
@@ -81,11 +93,9 @@ class GetGeometry(BaseHandler):
     urls = [r"/get/geometry/(?P<table_name>[^\/]+)/?(?P<params>[A-Za-z0-9-]+)?"]
 
     def get(self, table_name, params):
-        # parameters = self.request.arguments
 
         ####################################################################################
         # getting the parameters
-
         try:
             query = self.get_argument("q")
         except MissingArgumentError:
@@ -97,11 +107,8 @@ class GetGeometry(BaseHandler):
         geom_format = self.get_param_geometry_format()
 
         ####################################################################################
-
         # get the query from URL in form of dictionary
         QUERY_PARAM = self.get_dict_from_query_str(query)
-        # remove the query, because I have already got it
-        # del parameters["q"]
 
         ####################################################################################
 
@@ -116,11 +123,10 @@ class GetGeometry(BaseHandler):
             return
 
         ####################################################################################
-
         # verify if the params are valid
         result = self.exist_paramns_in_table_columns(list_of_columns_name_and_data_types, QUERY_PARAM)
 
-        if not result["exist_paramns_in_table_columns"]:
+        if not result["exist_params_in_table_columns"]:
             self.set_and_send_status(status=400,
                                      reason="Invalid arguments: " + str(result["invalid_columns"]),
                                      raise_error=False)
@@ -128,31 +134,26 @@ class GetGeometry(BaseHandler):
             return
 
         ####################################################################################
-
         # get the columns in string to put in query
         str_columns_names = self.PGSQLConn.get_list_of_columns_name_in_str(list_of_columns_name_and_data_types,
                                                                            get_srid=True,
                                                                            table_name=table_name,
                                                                            schema="public")
 
+        ####################################################################################
+        # create the WHERE clause
         where = self.build_where_clause_with_params(QUERY_PARAM)
 
-
+        ####################################################################################
         # something like: 'SELECT id, id_street, ST_AsText(geom) as geom FROM tb_places'
         # query_text = "SELECT " + str_columns_names + " FROM " + table_name
         query_text = "SELECT {0} FROM {1} {2};".format(str_columns_names, table_name, where)
 
         ####################################################################################
-
-        # add the where clause in the end of query
-        # query_text += self.build_where_clause_with_params(QUERY_PARAM)
-
-        ####################################################################################
-
         # run the query
-        results_list = self.PGSQLConn.search_in_database_by_query(query_text, geom_format=geom_format)
-        # 'SELECT id, id_street, ST_AsText(geom) as geom, ... date
+        # something like: 'SELECT id, id_street, ST_AsText(geom) as geom, ... date
         # FROM tb_places WHERE id=45 AND lower(name) LIKE lower(\\'%Pref%\\')'
+        results_list = self.PGSQLConn.search_in_database_by_query(query_text, geom_format=geom_format)
 
         # if result is empty
         if not results_list:
@@ -164,7 +165,6 @@ class GetGeometry(BaseHandler):
             return
 
         ####################################################################################
-
         # if is all ok, return the result as JSON (convert dict to JSON)
         self.write(dumps(results_list, default=json_util.default))
 
@@ -172,11 +172,7 @@ class GetGeometry(BaseHandler):
 class AddPoint(BaseHandler):
     # TODO: create a ADD OR UPDATE HERE
 
-    urls = [
-            # r"/add/point/(?P<table_name>[^\/]+)",
-            # r"/add/point/(?P<table_name>[^\/]+)/",
-            r"/add/point/(?P<table_name>[^\/]+)/?(?P<params>[A-Za-z0-9-]+)?"
-            ]
+    urls = [r"/add/point/(?P<table_name>[^\/]+)/?(?P<params>[A-Za-z0-9-]+)?"]
 
     def post(self, table_name, params):
         # TODO: get id user from logged user ("id_user": 6)
@@ -357,13 +353,12 @@ class AddPoint(BaseHandler):
 
 class RemoveGeometry(BaseHandler):
 
-    urls = [r"/get/remove/(?P<table_name>[^\/]+)/?(?P<params>[A-Za-z0-9-]+)?"]
+    urls = [r"/remove/geometry/(?P<table_name>[^\/]+)/?(?P<params>[A-Za-z0-9-]+)?"]
 
     def get(self, table_name, params):
 
         ####################################################################################
         # getting the parameters
-
         try:
             query = self.get_argument("q")
         except MissingArgumentError:
@@ -372,76 +367,55 @@ class RemoveGeometry(BaseHandler):
                                      raise_error=False)
             return
 
-        geom_format = self.get_param_geometry_format()
-
         ####################################################################################
-
         # get the query from URL in form of dictionary
         QUERY_PARAM = self.get_dict_from_query_str(query)
-        # remove the query, because I have already got it
-        # del parameters["q"]
+
+        # if the param is "all", raise exception, because the client CAN'T remove ALL records in DB by service
+        if QUERY_PARAM == "all":
+            self.set_and_send_status(status=400, reason="It is not possible use the 'all' parameter in removing service",
+                                     raise_error=False)
+            return
 
         ####################################################################################
 
         try:
-            list_of_columns_name_and_data_types = self.PGSQLConn.get_columns_name_and_data_types_from_table(table_name=table_name,
-                                                                                                            transform_geom_bin_in_wkt=True,
-                                                                                                            geom_format=geom_format)
+            list_of_columns_name_and_data_types = self.PGSQLConn.get_columns_name_and_data_types_from_table(
+                                                                                        table_name=table_name,
+                                                                                        transform_geom_bin_in_wkt=True)
         except GeomFormatException as e:
             self.set_and_send_status(status=400, reason=e.value,
                                      raise_error=False)
-                                     # raise_error=True)
             return
 
         ####################################################################################
-
         # verify if the params are valid
         result = self.exist_paramns_in_table_columns(list_of_columns_name_and_data_types, QUERY_PARAM)
 
-        if not result["exist_paramns_in_table_columns"]:
+        if not result["exist_params_in_table_columns"]:
             self.set_and_send_status(status=400,
                                      reason="Invalid arguments: " + str(result["invalid_columns"]),
                                      raise_error=False)
-                                    # raise_error=True)
             return
 
         ####################################################################################
-
-        # get the columns in string to put in query
-        str_columns_names = self.PGSQLConn.get_list_of_columns_name_in_str(list_of_columns_name_and_data_types,
-                                                                           get_srid=True,
-                                                                           table_name=table_name,
-                                                                           schema="public")
-
+        # create the WHERE clause
         where = self.build_where_clause_with_params(QUERY_PARAM)
 
-
+        ####################################################################################
         # something like: 'SELECT id, id_street, ST_AsText(geom) as geom FROM tb_places'
         # query_text = "SELECT " + str_columns_names + " FROM " + table_name
-        query_text = "SELECT {0} FROM {1} {2};".format(str_columns_names, table_name, where)
+        query_text = "DELETE FROM {0} {1};".format(table_name, where)
 
         ####################################################################################
-
-        # add the where clause in the end of query
-        # query_text += self.build_where_clause_with_params(QUERY_PARAM)
-
-        ####################################################################################
-
         # run the query
-        results_list = self.PGSQLConn.search_in_database_by_query(query_text, geom_format=geom_format)
-        # 'SELECT id, id_street, ST_AsText(geom) as geom, ... date
-        # FROM tb_places WHERE id=45 AND lower(name) LIKE lower(\\'%Pref%\\')'
-
-        # if result is empty
-        if not results_list:
-            # Not found values
-            self.set_and_send_status(status=404,
-                                     reason="Not found anything with the arguments",
-                                     raise_error=False)
-                                    # raise_error=True)
-            return
+        # something like: DELETE FROM tb_places WHERE name like 'TEST%';
+        number_removed = self.PGSQLConn.delete_in_database_by_query(query_text)
 
         ####################################################################################
 
-        # if is all ok, return the result as JSON (convert dict to JSON)
-        self.write(dumps(results_list, default=json_util.default))
+        if number_removed > 0:
+            extra = {"message": "Number of rows removed", "number": number_removed}
+            self.set_and_send_status(status=200, reason="Removed the point(s)", extra=extra)
+        else:
+            self.set_and_send_status(status=400, reason="No point was removed")

@@ -125,7 +125,7 @@ class BaseHandler(RequestHandler):
         # if QUERY_PARAM == "all", do nothing, it is default
 
         # not invalid_columns (if invalid_columns is empty, return True else return False)
-        result = {"exist_paramns_in_table_columns": not invalid_columns,
+        result = {"exist_params_in_table_columns": not invalid_columns,
                   "invalid_columns": invalid_columns}
 
         return result
