@@ -2,6 +2,30 @@
 // Responsible file to do some issues dynamically that is common for all JS files
 //
 
+function get_important_data(data){
+    return {
+        "status": data["status"],
+        "statusText": data["statusText"],
+        "responseText": data["responseText"],
+        "extra": "extra" in data ? data["extra"] : "",
+    };
+}
+
+function get_tornado_cookie(name) {
+    // http://www.tornadoweb.org/en/stable/guide/security.html
+    var r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
+    return r ? r[1] : undefined;
+}
+
+
+
+
+
+
+
+
+// other functions
+
 function require(script) {
     //
     // Responsible function to ...

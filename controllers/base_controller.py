@@ -168,3 +168,29 @@ class BaseHandler(RequestHandler):
             extra["invalid_columns"] = invalid_columns
 
         return extra
+
+    def check_permission_normal(self, email, password):
+        if email == "admin" and password == "admin":
+            return True
+        return False
+
+    def check_permission_gmail(self, email, password):
+        if email == "admin" and password == "admin":
+            return True
+        return False
+
+    def check_permission_facebook(self, email, password):
+        if email == "admin" and password == "admin":
+            return True
+        return False
+
+    def check_permission(self, email, password, type_login):
+        type_login = type_login.strip().lower()
+
+        if type_login == "gmail":
+            return self.check_permission_gmail(email, password)
+        elif type_login == "facebook":
+            return self.check_permission_facebook(email, password)
+        else:
+            # if type_login == "normal":
+            return self.check_permission_normal(email, password)

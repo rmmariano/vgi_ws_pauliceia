@@ -1,24 +1,33 @@
 {% extends "../../base/base.html" %}
 
-{% block page_header %}
+{% block js %}
+    <script type="text/javascript" src="/static/js/example/auth/login.js"></script>
 {% end %}
 
 {% block body %}
 
-    <form action="/auth/login/" method="post" id="login_form">
+    <form id="login_form" action="/auth/login/" method="post">
         <fieldset>
-            <label for="username">Username</label>
-            <input class="text-input" id="username" name="username" type="text" value="">
+            <label for="email"> E-mail </label>
+            <input id="email" class="text-input" name="email" type="text" value="">
         </fieldset>
 
         <fieldset>
-            <label for="password">Password</label>
-            <input class="text-input" id="password" name="password" type="password" value="">
+            <label for="password"> Password </label>
+            <input id="password" class="text-input" name="password" type="password" value="">
         </fieldset>
 
-        <fieldset>
-            <span class="errormessage"></span>
-        </fieldset>
+        <div id="type_login" class="btn-group" data-toggle="buttons">
+            <label class="btn btn-success active">
+                <input type="radio" name="options" id="normal" value="normal" autocomplete="off" checked> Normal
+            </label>
+            <label class="btn btn-danger">
+                <input type="radio" name="options" id="gmail" value="gmail" autocomplete="off"> Gmail
+            </label>
+            <label class="btn btn-primary">
+                <input type="radio" name="options" id="facebook" value="facebook" autocomplete="off"> Facebook
+            </label>
+        </div>
 
         <div id="form_btn">
             {% module xsrf_form_html() %}

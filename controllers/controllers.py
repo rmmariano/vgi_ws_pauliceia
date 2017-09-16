@@ -5,7 +5,8 @@
     Responsible module to create handlers.
 """
 
-import tornado
+from tornado.web import authenticated
+from tornado.escape import json_encode, json_decode, xhtml_escape
 
 from .base_controller import *
 from bson import json_util
@@ -118,29 +119,39 @@ class AuthLogin(BaseHandler):
 
         self.render("example/auth/login.html", errormessage=errormessage)
 
-    def check_permission(self, password, username):
-        if username == "admin" and password == "admin":
-            return True
-        return False
-
     def post(self):
-        username = self.get_argument("username", "")
+        email = self.get_argument("email", "")
         password = self.get_argument("password", "")
-        auth = self.check_permission(password, username)
+        type_login = self.get_argument("type_login", "")
+
+        auth = self.check_permission(email, password, type_login)
 
         if auth:
-            self.set_current_user(username)
-            redirect = self.get_argument("next", u"/")
-            self.redirect(redirect)
-        else:
-            error_msg = u"?error=" + tornado.escape.url_escape("Login incorrect")
-            self.redirect(u"/auth/login/" + error_msg)
+            user_cookie = {
+                # information of the user
+                "login": {
+                    "email": email,
+                    "username": "username",
+                    "type_login": type_login
+                },
+            }
 
-    def set_current_user(self, user):
-        if user:
-            self.set_secure_cookie("user", tornado.escape.json_encode(user))
+            # set the cookie (it needs to be separated)
+            encode = json_encode(user_cookie)
+            self.set_secure_cookie("user", encode)
+            # decode = json_decode(self.get_secure_cookie("user"))
+
+            self.set_and_send_status(status=200, reason="Logged in system", extra=user_cookie)
+            return
         else:
-            self.clear_cookie("user")
+            self.set_and_send_status(status=404, reason="Login is invalid. Correct them and try again.")
+            return
+
+    # def set_current_user(self, user):
+    #     if user:
+    #         self.set_secure_cookie("user", json_encode(user))
+    #     else:
+    #         self.clear_cookie("user")
 
 
 class MainHandlerNeedLogin(BaseHandler):
@@ -148,9 +159,9 @@ class MainHandlerNeedLogin(BaseHandler):
     # nl = need login
     urls = [r"/main/nl/", r"/main/nl"]
 
-    @tornado.web.authenticated
+    @authenticated
     def get(self):
-        username = tornado.escape.xhtml_escape(self.current_user)
+        username = xhtml_escape(self.current_user)
         self.render("example/main/mainneedlogin.html", username=username)
 
 
