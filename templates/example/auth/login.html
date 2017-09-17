@@ -1,21 +1,31 @@
 {% extends "../../base/base.html" %}
 
 {% block js %}
+    <!--https://github.com/emn178/js-sha512-->
+    <script type="text/javascript" src="/static/js/hash/sha512.min.js"></script>
     <script type="text/javascript" src="/static/js/example/auth/login.js"></script>
+{% end %}
+
+{% block css %}
+    <link rel="stylesheet" href="/static/libs/font-awesome/css/font-awesome.css" type="text/css">
+    <link rel="stylesheet" href="/static/libs/bootstrap/social-gh-pages/bootstrap-social.css" type="text/css">
 {% end %}
 
 {% block body %}
 
-    <a href="/auth/facebook/" class="btn btn-default">
-        Facebook <span class="glyphicon glyphicon-collapse-up" aria-hidden="true"></span>
-    </a>
+    <div class="btn-group" data-toggle="buttons">
+        <a class="btn btn-block btn-social btn-facebook">
+            <span class="fa fa-facebook"></span> Sign in with Facebook
+        </a>
 
-    <a href="/auth/google/" class="btn btn-default">
-        Google <span class="glyphicon glyphicon-collapse-up" aria-hidden="true"></span>
-    </a>
+        <a class="btn btn-block btn-social btn-google">
+            <span class="fa fa-google"></span> Sign in with Google
+        </a>
+    </div>
 
+    <!--action="/auth/login/" method="post"-->
 
-    <form id="login_form" action="/auth/login/" method="post">
+    <form id="login_form">
         <fieldset>
             <label for="email"> E-mail </label>
             <input id="email" class="text-input" name="email" type="text" value="">
@@ -25,18 +35,6 @@
             <label for="password"> Password </label>
             <input id="password" class="text-input" name="password" type="password" value="">
         </fieldset>
-
-        <div id="type_login" class="btn-group" data-toggle="buttons">
-            <label class="btn btn-success active">
-                <input type="radio" name="options" id="normal" value="normal" autocomplete="off" checked> Normal
-            </label>
-            <label class="btn btn-danger">
-                <input type="radio" name="options" id="gmail" value="gmail" autocomplete="off"> Gmail
-            </label>
-            <label class="btn btn-primary">
-                <input type="radio" name="options" id="facebook" value="facebook" autocomplete="off"> Facebook
-            </label>
-        </div>
 
         <div id="form_btn">
             {% module xsrf_form_html() %}

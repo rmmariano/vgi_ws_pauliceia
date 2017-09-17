@@ -13,8 +13,10 @@ $(document).ready(function(){
         request.done(function(data, textStatus, information) {
             console.log("done :D ");
 
-            // convert string into JSON
-            data = $.parseJSON(data);
+            if(data instanceof Object)
+                // convert string into JSON
+                data = $.parseJSON(data);
+            //else data is instanceof String
 
             console.log(data);
         });
@@ -34,12 +36,9 @@ $(document).ready(function(){
         // to stop the form from default submitting
         ev.preventDefault();
 
-        var type_login = $('#type_login input:radio:checked').val();
-
         var args = {
                 "email": $("#email").val(),
-                "password": $("#password").val(),
-                "type_login": type_login,
+                "password": sha512($("#password").val()),  // hash the password
             };
 
         login(args);

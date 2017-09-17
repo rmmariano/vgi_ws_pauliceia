@@ -6,11 +6,14 @@
 """
 
 
+from tornado.escape import json_encode, json_decode
 from tornado.web import RequestHandler, HTTPError, MissingArgumentError
 from json import dumps, loads
 
 # Let importing ALL
 from models import *
+from modules.user import get_new_user_struct_cookie
+
 
 
 class BaseHandler(RequestHandler):
@@ -24,6 +27,11 @@ class BaseHandler(RequestHandler):
 
     # DB connection
     PGSQLConn = PGSQLConnection.get_instance()
+
+    # LOGIN  // external login (EL)
+    __EL_AFTER_LOGGED_REDIRECT_TO__ = "/auth/login/success/"
+    __EL_AFTER_LOGGED_OUT_REDIRECT_TO__ = "/auth/logout/success/"
+
 
     def get_the_json_validated(self):
         """
@@ -169,28 +177,31 @@ class BaseHandler(RequestHandler):
 
         return extra
 
-    def check_permission_normal(self, email, password):
+    def check_permission(self, email, password):
         if email == "admin" and password == "admin":
             return True
         return False
 
-    def check_permission_gmail(self, email, password):
-        if email == "admin" and password == "admin":
-            return True
-        return False
 
-    def check_permission_facebook(self, email, password):
-        if email == "admin" and password == "admin":
-            return True
-        return False
+    # cookie
 
-    def check_permission(self, email, password, type_login):
-        type_login = type_login.strip().lower()
-
-        if type_login == "gmail":
-            return self.check_permission_gmail(email, password)
-        elif type_login == "facebook":
-            return self.check_permission_facebook(email, password)
+    def set_current_user(self, email="", type_login="", new_user=True):
+        if new_user:
+            user_cookie = get_new_user_struct_cookie()
         else:
-            # if type_login == "normal":
-            return self.check_permission_normal(email, password)
+            user_cookie = json_decode(self.get_secure_cookie("user"))
+
+        user_cookie["login"]["email"] = email
+        user_cookie["login"]["type_login"] = type_login
+
+        # set the cookie (it needs to be separated)
+        encode = json_encode(user_cookie)
+        self.set_secure_cookie("user", encode)
+
+    def get_current_user(self):
+        user_cookie = self.get_secure_cookie("user")
+
+        if user_cookie:
+            return json_decode(user_cookie)
+        else:
+            return None

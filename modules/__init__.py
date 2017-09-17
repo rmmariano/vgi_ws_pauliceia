@@ -5,3 +5,4 @@ from .design_pattern import *
 from .exception import *
 from .util import *
 from .sql import *
+from .user import *

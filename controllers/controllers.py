@@ -6,7 +6,7 @@
 """
 
 from tornado.web import authenticated
-from tornado.escape import json_encode, json_decode, xhtml_escape
+from tornado.escape import xhtml_escape
 from tornado.auth import GoogleOAuth2Mixin, FacebookGraphMixin
 from tornado.gen import coroutine
 
@@ -97,7 +97,7 @@ class PageExampleCRUDRemove(BaseHandler):
 # authentication
 
 
-class AuthLogout(BaseHandler):
+class AuthLogoutHandler(BaseHandler):
 
     urls = [r"/auth/logout/", r"/auth/logout"]
 
@@ -105,10 +105,13 @@ class AuthLogout(BaseHandler):
         self.clear_cookie("user")
         # redirect = self.get_argument("next", "/")
         # self.redirect(redirect)
+
+        # self.redirect(self.__EL_AFTER_LOGGED_OUT_REDIRECT_TO__)
+
         self.render("example/auth/logout.html")
 
 
-class AuthLogin(BaseHandler):
+class AuthLoginHandler(BaseHandler):
     # Login
     # http://www.tornadoweb.org/en/stable/guide/security.html
     # http://guillaumevincent.com/2013/02/12/Basic-authentication-on-Tornado-with-a-decorator.html
@@ -127,129 +130,66 @@ class AuthLogin(BaseHandler):
     def post(self):
         email = self.get_argument("email", "")
         password = self.get_argument("password", "")
-        type_login = self.get_argument("type_login", "")
 
-        auth = self.check_permission(email, password, type_login)
+        auth = self.check_permission(email, password)
 
         if auth:
-            user_cookie = {
-                # information of the user
-                "login": {
-                    "email": email,
-                    "username": "username",
-                    "type_login": type_login
-                },
-            }
+            self.set_current_user(email=email, type_login="normal", new_user=True)
+            # user_cookie = self.get_current_user()
 
-            # set the cookie (it needs to be separated)
-            encode = json_encode(user_cookie)
-            self.set_secure_cookie("user", encode)
-            # decode = json_decode(self.get_secure_cookie("user"))
-
-            self.set_and_send_status(status=200, reason="Logged in system", extra=user_cookie)
-            return
+            # self.set_and_send_status(status=200, reason="Logged in system", extra=user_cookie)
+            super(BaseHandler, self).redirect(self.__EL_AFTER_LOGGED_REDIRECT_TO__)
         else:
             self.set_and_send_status(status=404, reason="Login is invalid. Correct them and try again.")
             return
 
-    # def set_current_user(self, user):
-    #     if user:
-    #         self.set_secure_cookie("user", json_encode(user))
-    #     else:
-    #         self.clear_cookie("user")
 
-    # def get_current_user(self):
-    #     user_json = self.get_secure_cookie("user")
-    #     if user_json:
-    #         return tornado.escape.json_decode(user_json)
-    #     else:
-    #         return None
+class GoogleLoginHandler(BaseHandler, GoogleOAuth2Mixin):
+    """
+        Tornado Auth:
+        http://www.tornadoweb.org/en/stable/auth.html
 
 
+    """
 
+    urls = [r"/auth/google/", r"/auth/google"]
 
-# class GoogleOAuth2LoginHandler(BaseHandler, GoogleOAuth2Mixin):
-#     """
-#         Tornado Auth:
-#         http://www.tornadoweb.org/en/stable/auth.html
-#
-#
-#     """
-#
-#     urls = [r"/auth/google/", r"/auth/google"]
-#
-#     @coroutine
-#     def get(self):
-#         redirect_uri = 'http://localhost:8888/auth/google/'
-#
-#         if self.get_argument('code', False):
-#             user = yield self.get_authenticated_user(
-#                         redirect_uri=redirect_uri,
-#                         code=self.get_argument('code')
-#             )
-#
-#             # Save the user with e.g. set_secure_cookie
-#
-#             for key in user:
-#                 print(key, ": ", user[key])
-#
-#             print(user)
-#
-#             self.redirect("/auth/login/success/")
-#         else:
-#             yield self.authorize_redirect(
-#                     redirect_uri=redirect_uri,
-#                     client_id=__GOOGLE_SETTINGS__['google_oauth']['key'],
-#                     scope=['profile', 'email'],
-#                     response_type='code',
-#                     extra_params={'approval_prompt': 'auto'}
-#             )
+    redirect_uri = "http://localhost:8888/auth/google/"
 
+    @coroutine
+    def get(self):
 
-# class GoogleOAuth2LoginHandler(BaseHandler, GoogleOAuth2Mixin):
-#     """
-#         Tornado Auth:
-#         http://www.tornadoweb.org/en/stable/auth.html
-#
-#
-#     """
-#
-#     urls = [r"/auth/google/", r"/auth/google"]
-#
-#     @coroutine
-#     def get(self):
-#         redirect_uri = 'http://localhost:8888/auth/google/'
-#
-#         self.application.settings = __GOOGLE_SETTINGS__
-#
-#         if self.get_argument('code', False):
-#             access = yield self.get_authenticated_user(
-#                             redirect_uri=redirect_uri,
-#                             code=self.get_argument('code'))
-#             user = yield self.oauth2_request(
-#                             "https://www.googleapis.com/oauth2/v1/userinfo",
-#                             access_token=access["access_token"])
-#             # Save the user and access token with
-#             # e.g. set_secure_cookie.
-#
-#             for key in user:
-#                 print(key, ": ", user[key])
-#
-#             print(user)
-#
-#             self.redirect("/auth/login/success/")
-#         else:
-#             yield self.authorize_redirect(
-#                 redirect_uri=redirect_uri,
-#                 client_id=self.settings['google_oauth']['key'],
-#                 scope=['profile', 'email'],
-#                 response_type='code',
-#                 extra_params={'approval_prompt': 'auto'}
-#             )
+        self.application.settings['google_oauth'] = __GOOGLE_SETTINGS__['google_oauth']
+
+        if self.get_argument('code', False):
+            access = yield self.get_authenticated_user(
+                            redirect_uri=self.redirect_uri,
+                            code=self.get_argument('code'))
+            user = yield self.oauth2_request(
+                            "https://www.googleapis.com/oauth2/v1/userinfo",
+                            access_token=access["access_token"])
+
+            # for key in user:
+            #     print(key, ": ", user[key])
+            # print(user)
+
+            self.set_current_user(email=user["email"], type_login="google", new_user=True)
+            # user_cookie = self.get_current_user()
+            #
+            # self.set_and_send_status(status=200, reason="Logged in system", extra=user_cookie)
+            super(BaseHandler, self).redirect(self.__EL_AFTER_LOGGED_REDIRECT_TO__)
+        else:
+            yield self.authorize_redirect(
+                redirect_uri=self.redirect_uri,
+                client_id=self.settings['google_oauth']['key'],
+                scope=['profile', 'email'],
+                response_type='code',
+                extra_params={'approval_prompt': 'auto'}
+            )
 
 
 
-class FacebookGraphLoginHandler(BaseHandler, FacebookGraphMixin):
+class FacebookLoginHandler(BaseHandler, FacebookGraphMixin):
     """
         Tornado Auth:
         http://www.tornadoweb.org/en/stable/auth.html
@@ -268,35 +208,37 @@ class FacebookGraphLoginHandler(BaseHandler, FacebookGraphMixin):
 
     urls = [r"/auth/facebook/", r"/auth/facebook"]
 
+    redirect_uri = "http://localhost:8888/auth/facebook/"
+
     @coroutine
     def get(self):
-        redirect_uri = 'http://localhost:8888/auth/facebook/'
 
-        # self.application.settings = __FACEBOOK_SETTINGS__
-        # self.settings
+        self.application.settings['facebook_api_key'] = __FACEBOOK_SETTINGS__['facebook_api_key']
+        self.application.settings['facebook_secret'] = __FACEBOOK_SETTINGS__['facebook_secret']
 
         if self.get_argument("code", False):
             user = yield self.get_authenticated_user(
-                    redirect_uri=redirect_uri,
-                    client_id=__FACEBOOK_SETTINGS__["facebook_api_key"],
-                    client_secret=__FACEBOOK_SETTINGS__["facebook_secret"],
+                    redirect_uri=self.redirect_uri,
+                    client_id=self.settings["facebook_api_key"],
+                    client_secret=self.settings["facebook_secret"],
                     code=self.get_argument("code"),
-                    extra_fields=['email', "gender"]
+                    extra_fields=['email']
             )
 
-            # Save the user with e.g. set_secure_cookie
+            # for key in user:
+            #     print(key, ": ", user[key])
+            # print(user)
 
-            for key in user:
-                print(key, ": ", user[key])
-
-            print(user)
-
-            self.redirect("/auth/login/success/")
+            self.set_current_user(email=user["email"], type_login="facebook", new_user=True)
+            # user_cookie = self.get_current_user()
+            #
+            # self.set_and_send_status(status=200, reason="Logged in system", extra=user_cookie)
+            super(BaseHandler, self).redirect(self.__EL_AFTER_LOGGED_REDIRECT_TO__)
         else:
             yield self.authorize_redirect(
-                    redirect_uri=redirect_uri,
-                    client_id=__FACEBOOK_SETTINGS__["facebook_api_key"],
-                    extra_params={"scope": "user_posts,email,gender"}
+                    redirect_uri=self.redirect_uri,
+                    client_id=self.settings["facebook_api_key"],
+                    extra_params={"scope": "user_posts,email"}
             )
 
 
@@ -306,10 +248,6 @@ class LoginSuccess(BaseHandler):
     urls = [r"/auth/login/success", r"/auth/login/success/"]
 
     def get(self):
-        filters = self.request.arguments
-
-        # print(params)
-
         self.render("example/auth/login_success.html")
 
 
