@@ -5,7 +5,6 @@
     Responsible file to start the application.
 """
 
-
 from os.path import join, dirname
 
 from tornado.ioloop import IOLoop
@@ -15,7 +14,8 @@ from tornado.options import define, options, parse_command_line
 
 from settings import *
 from settings.accounts import __COOKIE_SECRET__
-from controllers import *
+from controllers.controllers import __LIST_BASEHANDLER_SUBCLASSES__
+from models import PGSQLConnection
 
 
 # Define which IP will be used
@@ -47,16 +47,19 @@ class HttpServerApplication(Application):
 
         # All the classes added in the under list have to extend of the BaseHandler class
         # because it that have the static variable called urls
-        handler_classes = [
-            AuthLogin, AuthLogout,
-            GoogleOAuth2LoginHandler, FacebookGraphLoginHandler,
-            LoginSuccess,
+        handler_classes = [subclass["class_instance"] for subclass in __LIST_BASEHANDLER_SUBCLASSES__]
 
-            IndexHandler,
-            PageExampleCRUDGet, PageExampleCRUDAdd, PageExampleCRUDRemove,
-            GetGeometry, AddGeometry, RemoveGeometry,
-            GetTag, AddTag, RemoveTag,
-        ]
+        # handler_classes2 = [
+        #     AuthLogin, AuthLogout,
+        #     #GoogleOAuth2LoginHandler,
+        #     FacebookGraphLoginHandler,
+        #     LoginSuccess,
+        #
+        #     IndexHandler,
+        #     PageExampleCRUDGet, PageExampleCRUDAdd, PageExampleCRUDRemove,
+        #     GetGeometry, AddGeometry, RemoveGeometry,
+        #     GetTag, AddTag, RemoveTag,
+        # ]
 
         # Create a new handler ( (url, class) ) using the URL of the list of urls with its class correspondent
         __handlers__ = []

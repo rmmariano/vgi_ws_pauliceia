@@ -15,6 +15,7 @@ from bson import json_util
 from re import findall
 
 from settings.accounts import __FACEBOOK_SETTINGS__, __GOOGLE_SETTINGS__
+from modules.util import get_subclasses_from_class
 
 
 # pages
@@ -167,7 +168,7 @@ class AuthLogin(BaseHandler):
 
 
 
-# class GoogleOAuth2LoginHandler(RequestHandler, GoogleOAuth2Mixin):
+# class GoogleOAuth2LoginHandler(BaseHandler, GoogleOAuth2Mixin):
 #     """
 #         Tornado Auth:
 #         http://www.tornadoweb.org/en/stable/auth.html
@@ -205,50 +206,50 @@ class AuthLogin(BaseHandler):
 #             )
 
 
-class GoogleOAuth2LoginHandler(RequestHandler, GoogleOAuth2Mixin):
-    """
-        Tornado Auth:
-        http://www.tornadoweb.org/en/stable/auth.html
+# class GoogleOAuth2LoginHandler(BaseHandler, GoogleOAuth2Mixin):
+#     """
+#         Tornado Auth:
+#         http://www.tornadoweb.org/en/stable/auth.html
+#
+#
+#     """
+#
+#     urls = [r"/auth/google/", r"/auth/google"]
+#
+#     @coroutine
+#     def get(self):
+#         redirect_uri = 'http://localhost:8888/auth/google/'
+#
+#         self.application.settings = __GOOGLE_SETTINGS__
+#
+#         if self.get_argument('code', False):
+#             access = yield self.get_authenticated_user(
+#                             redirect_uri=redirect_uri,
+#                             code=self.get_argument('code'))
+#             user = yield self.oauth2_request(
+#                             "https://www.googleapis.com/oauth2/v1/userinfo",
+#                             access_token=access["access_token"])
+#             # Save the user and access token with
+#             # e.g. set_secure_cookie.
+#
+#             for key in user:
+#                 print(key, ": ", user[key])
+#
+#             print(user)
+#
+#             self.redirect("/auth/login/success/")
+#         else:
+#             yield self.authorize_redirect(
+#                 redirect_uri=redirect_uri,
+#                 client_id=self.settings['google_oauth']['key'],
+#                 scope=['profile', 'email'],
+#                 response_type='code',
+#                 extra_params={'approval_prompt': 'auto'}
+#             )
 
 
-    """
 
-    urls = [r"/auth/google/", r"/auth/google"]
-
-    @coroutine
-    def get(self):
-        redirect_uri = 'http://localhost:8888/auth/google/'
-
-        self.application.settings = __GOOGLE_SETTINGS__
-
-        if self.get_argument('code', False):
-            access = yield self.get_authenticated_user(
-                            redirect_uri=redirect_uri,
-                            code=self.get_argument('code'))
-            user = yield self.oauth2_request(
-                            "https://www.googleapis.com/oauth2/v1/userinfo",
-                            access_token=access["access_token"])
-            # Save the user and access token with
-            # e.g. set_secure_cookie.
-
-            for key in user:
-                print(key, ": ", user[key])
-
-            print(user)
-
-            self.redirect("/auth/login/success/")
-        else:
-            yield self.authorize_redirect(
-                redirect_uri=redirect_uri,
-                client_id=self.settings['google_oauth']['key'],
-                scope=['profile', 'email'],
-                response_type='code',
-                extra_params={'approval_prompt': 'auto'}
-            )
-
-
-
-class FacebookGraphLoginHandler(RequestHandler, FacebookGraphMixin):
+class FacebookGraphLoginHandler(BaseHandler, FacebookGraphMixin):
     """
         Tornado Auth:
         http://www.tornadoweb.org/en/stable/auth.html
@@ -271,7 +272,7 @@ class FacebookGraphLoginHandler(RequestHandler, FacebookGraphMixin):
     def get(self):
         redirect_uri = 'http://localhost:8888/auth/facebook/'
 
-        self.application.settings = __FACEBOOK_SETTINGS__
+        # self.application.settings = __FACEBOOK_SETTINGS__
         # self.settings
 
         if self.get_argument("code", False):
@@ -1007,3 +1008,9 @@ class RemoveTag(BaseHandler):
         else:
             self.set_and_send_status(status=400, reason="No point was removed")
 
+
+# CONSTANTS
+
+__LIST_BASEHANDLER_SUBCLASSES__ = get_subclasses_from_class(vars()['BaseHandler'])
+
+# print("BaseHandler subclasses: ", __LIST_BASEHANDLER_SUBCLASSES__)
