@@ -131,14 +131,15 @@ class AuthLoginHandler(BaseHandler):
         email = self.get_argument("email", "")
         password = self.get_argument("password", "")
 
-        auth = self.check_permission(email, password)
+        result = self.do_login(email, password)
 
-        if auth:
+        if result:
             self.set_current_user(email=email, type_login="normal", new_user=True)
             # user_cookie = self.get_current_user()
 
-            # self.set_and_send_status(status=200, reason="Logged in system", extra=user_cookie)
-            super(BaseHandler, self).redirect(self.__EL_AFTER_LOGGED_REDIRECT_TO__)
+            self.set_and_send_status(status=200, reason="Logged in system")
+            return
+            # super(BaseHandler, self).redirect(self.__EL_AFTER_LOGGED_REDIRECT_TO__)
         else:
             self.set_and_send_status(status=404, reason="Login is invalid. Correct them and try again.")
             return
@@ -176,7 +177,7 @@ class GoogleLoginHandler(BaseHandler, GoogleOAuth2Mixin):
             self.set_current_user(email=user["email"], type_login="google", new_user=True)
             # user_cookie = self.get_current_user()
             #
-            # self.set_and_send_status(status=200, reason="Logged in system", extra=user_cookie)
+            # self.set_and_send_status(status=200, reason="Logged in system")
             super(BaseHandler, self).redirect(self.__EL_AFTER_LOGGED_REDIRECT_TO__)
         else:
             yield self.authorize_redirect(
@@ -232,7 +233,7 @@ class FacebookLoginHandler(BaseHandler, FacebookGraphMixin):
             self.set_current_user(email=user["email"], type_login="facebook", new_user=True)
             # user_cookie = self.get_current_user()
             #
-            # self.set_and_send_status(status=200, reason="Logged in system", extra=user_cookie)
+            # self.set_and_send_status(status=200, reason="Logged in system")
             super(BaseHandler, self).redirect(self.__EL_AFTER_LOGGED_REDIRECT_TO__)
         else:
             yield self.authorize_redirect(

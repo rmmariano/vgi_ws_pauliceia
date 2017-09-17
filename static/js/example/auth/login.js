@@ -13,10 +13,12 @@ $(document).ready(function(){
         request.done(function(data, textStatus, information) {
             console.log("done :D ");
 
-            if(data instanceof Object)
-                // convert string into JSON
-                data = $.parseJSON(data);
-            //else data is instanceof String
+            // convert string into JSON
+            data = $.parseJSON(data);
+
+            if(data["status"] == 200)  // 200 - OK
+                // similar behavior as an HTTP redirect (don't back) (https://stackoverflow.com/questions/503093/how-to-redirect-to-another-webpage)
+                window.location.replace("/auth/login/success/");
 
             console.log(data);
         });

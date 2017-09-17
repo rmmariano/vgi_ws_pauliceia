@@ -177,10 +177,17 @@ class BaseHandler(RequestHandler):
 
         return extra
 
-    def check_permission(self, email, password):
-        if email == "admin" and password == "admin":
-            return True
-        return False
+
+    # login
+
+    def do_login(self, email, password):
+        query_text = """ SELECT id, name, email, institution, level, datestart, status FROM tb_users 
+                            WHERE email = '{0}' AND password = '{1}';
+                    """.format(email, password)
+
+        result = self.PGSQLConn.search_in_database_by_query(query_text)
+
+        return result
 
 
     # cookie
