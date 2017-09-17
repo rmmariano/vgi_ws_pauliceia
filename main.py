@@ -14,6 +14,7 @@ from tornado.web import Application, StaticFileHandler
 from tornado.options import define, options, parse_command_line
 
 from settings import *
+from settings.accounts import __COOKIE_SECRET__
 from controllers import *
 
 
@@ -48,6 +49,9 @@ class HttpServerApplication(Application):
         # because it that have the static variable called urls
         handler_classes = [
             AuthLogin, AuthLogout,
+            GoogleOAuth2LoginHandler, FacebookGraphLoginHandler,
+            LoginSuccess,
+
             IndexHandler,
             PageExampleCRUDGet, PageExampleCRUDAdd, PageExampleCRUDRemove,
             GetGeometry, AddGeometry, RemoveGeometry,
@@ -73,7 +77,7 @@ class HttpServerApplication(Application):
             # cookie_secret="__TODO:_GENERATE_YOUR_OWN_RANDOM_VALUE_HERE__",
 
             # how to generate: https://gist.github.com/didip/823887
-            cookie_secret="3A6Wo4vSRbS9DGQGkVB2xnm3YoieY0xTvKaxS1d1SxM=",
+            cookie_secret=__COOKIE_SECRET__,
             login_url="/auth/login/",
 
             # login_url="/auth/login",

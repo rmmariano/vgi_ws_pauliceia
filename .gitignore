@@ -5,6 +5,7 @@ ignore/*
 
 # Ignore specific files
 settings/db_settings.py
+settings/accounts.py
 
 
 # Internal files

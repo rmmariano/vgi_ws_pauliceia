@@ -6,6 +6,15 @@
 
 {% block body %}
 
+    <a href="/auth/facebook/" class="btn btn-default">
+        Facebook <span class="glyphicon glyphicon-collapse-up" aria-hidden="true"></span>
+    </a>
+
+    <a href="/auth/google/" class="btn btn-default">
+        Google <span class="glyphicon glyphicon-collapse-up" aria-hidden="true"></span>
+    </a>
+
+
     <form id="login_form" action="/auth/login/" method="post">
         <fieldset>
             <label for="email"> E-mail </label>

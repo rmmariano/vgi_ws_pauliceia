@@ -7,10 +7,14 @@
 
 from tornado.web import authenticated
 from tornado.escape import json_encode, json_decode, xhtml_escape
+from tornado.auth import GoogleOAuth2Mixin, FacebookGraphMixin
+from tornado.gen import coroutine
 
 from .base_controller import *
 from bson import json_util
 from re import findall
+
+from settings.accounts import __FACEBOOK_SETTINGS__, __GOOGLE_SETTINGS__
 
 
 # pages
@@ -153,6 +157,161 @@ class AuthLogin(BaseHandler):
     #     else:
     #         self.clear_cookie("user")
 
+    # def get_current_user(self):
+    #     user_json = self.get_secure_cookie("user")
+    #     if user_json:
+    #         return tornado.escape.json_decode(user_json)
+    #     else:
+    #         return None
+
+
+
+
+# class GoogleOAuth2LoginHandler(RequestHandler, GoogleOAuth2Mixin):
+#     """
+#         Tornado Auth:
+#         http://www.tornadoweb.org/en/stable/auth.html
+#
+#
+#     """
+#
+#     urls = [r"/auth/google/", r"/auth/google"]
+#
+#     @coroutine
+#     def get(self):
+#         redirect_uri = 'http://localhost:8888/auth/google/'
+#
+#         if self.get_argument('code', False):
+#             user = yield self.get_authenticated_user(
+#                         redirect_uri=redirect_uri,
+#                         code=self.get_argument('code')
+#             )
+#
+#             # Save the user with e.g. set_secure_cookie
+#
+#             for key in user:
+#                 print(key, ": ", user[key])
+#
+#             print(user)
+#
+#             self.redirect("/auth/login/success/")
+#         else:
+#             yield self.authorize_redirect(
+#                     redirect_uri=redirect_uri,
+#                     client_id=__GOOGLE_SETTINGS__['google_oauth']['key'],
+#                     scope=['profile', 'email'],
+#                     response_type='code',
+#                     extra_params={'approval_prompt': 'auto'}
+#             )
+
+
+class GoogleOAuth2LoginHandler(RequestHandler, GoogleOAuth2Mixin):
+    """
+        Tornado Auth:
+        http://www.tornadoweb.org/en/stable/auth.html
+
+
+    """
+
+    urls = [r"/auth/google/", r"/auth/google"]
+
+    @coroutine
+    def get(self):
+        redirect_uri = 'http://localhost:8888/auth/google/'
+
+        self.application.settings = __GOOGLE_SETTINGS__
+
+        if self.get_argument('code', False):
+            access = yield self.get_authenticated_user(
+                            redirect_uri=redirect_uri,
+                            code=self.get_argument('code'))
+            user = yield self.oauth2_request(
+                            "https://www.googleapis.com/oauth2/v1/userinfo",
+                            access_token=access["access_token"])
+            # Save the user and access token with
+            # e.g. set_secure_cookie.
+
+            for key in user:
+                print(key, ": ", user[key])
+
+            print(user)
+
+            self.redirect("/auth/login/success/")
+        else:
+            yield self.authorize_redirect(
+                redirect_uri=redirect_uri,
+                client_id=self.settings['google_oauth']['key'],
+                scope=['profile', 'email'],
+                response_type='code',
+                extra_params={'approval_prompt': 'auto'}
+            )
+
+
+
+class FacebookGraphLoginHandler(RequestHandler, FacebookGraphMixin):
+    """
+        Tornado Auth:
+        http://www.tornadoweb.org/en/stable/auth.html
+
+        How to create a new Facebook App:
+        https://developers.facebook.com/docs/apps/register
+        https://developers.facebook.com/docs/apps/register#developer-account
+
+        In the Facebook App page in App Domains, add the domain of the server,
+        in this case "localhost" and in the web site "http://localhost:8888/".
+        https://developers.facebook.com/apps/461266394258303/settings/
+
+        Permissions:
+        https://developers.facebook.com/docs/facebook-login/permission
+    """
+
+    urls = [r"/auth/facebook/", r"/auth/facebook"]
+
+    @coroutine
+    def get(self):
+        redirect_uri = 'http://localhost:8888/auth/facebook/'
+
+        self.application.settings = __FACEBOOK_SETTINGS__
+        # self.settings
+
+        if self.get_argument("code", False):
+            user = yield self.get_authenticated_user(
+                    redirect_uri=redirect_uri,
+                    client_id=__FACEBOOK_SETTINGS__["facebook_api_key"],
+                    client_secret=__FACEBOOK_SETTINGS__["facebook_secret"],
+                    code=self.get_argument("code"),
+                    extra_fields=['email', "gender"]
+            )
+
+            # Save the user with e.g. set_secure_cookie
+
+            for key in user:
+                print(key, ": ", user[key])
+
+            print(user)
+
+            self.redirect("/auth/login/success/")
+        else:
+            yield self.authorize_redirect(
+                    redirect_uri=redirect_uri,
+                    client_id=__FACEBOOK_SETTINGS__["facebook_api_key"],
+                    extra_params={"scope": "user_posts,email,gender"}
+            )
+
+
+class LoginSuccess(BaseHandler):
+
+    # nl = need login
+    urls = [r"/auth/login/success", r"/auth/login/success/"]
+
+    def get(self):
+        filters = self.request.arguments
+
+        # print(params)
+
+        self.render("example/auth/login_success.html")
+
+
 
 class MainHandlerNeedLogin(BaseHandler):
 
@@ -171,7 +330,7 @@ class MainHandlerDontNeedLogin(BaseHandler):
     urls = [r"/main/dnl/", r"/main/dnl"]
 
     def get(self):
-        username = tornado.escape.xhtml_escape(self.current_user)
+        username = xhtml_escape(self.current_user)
         self.render("example/main/maindontneedlogin.html", username=username)
 
 
