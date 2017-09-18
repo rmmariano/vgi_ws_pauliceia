@@ -49,23 +49,13 @@ class HttpServerApplication(Application):
         # because it that have the static variable called urls
         handler_classes = [subclass["class_instance"] for subclass in __LIST_BASEHANDLER_SUBCLASSES__]
 
-        # handler_classes2 = [
-        #     AuthLogin, AuthLogout,
-        #     #GoogleOAuth2LoginHandler,
-        #     FacebookGraphLoginHandler,
-        #     LoginSuccess,
-        #
-        #     IndexHandler,
-        #     PageExampleCRUDGet, PageExampleCRUDAdd, PageExampleCRUDRemove,
-        #     GetGeometry, AddGeometry, RemoveGeometry,
-        #     GetTag, AddTag, RemoveTag,
-        # ]
-
         # Create a new handler ( (url, class) ) using the URL of the list of urls with its class correspondent
         __handlers__ = []
         for __class__ in handler_classes:
-            for url in __class__.urls:
-                __handlers__.append( (url, __class__) )
+            for __url__ in __class__.urls:
+                __handlers__.append(
+                    (__url__, __class__)  # add a tuple with the URL and instance of CLASS
+                )
 
         # Add the path "static" as static file
         static_path = join(dirname(__file__), "static")
@@ -75,15 +65,12 @@ class HttpServerApplication(Application):
         __setting__s = dict(
             blog_title=TITLE_APP,
             template_path=join(dirname(__file__), "templates"),
-            # static_path=join(dirname(__file__), "static"),
-            xsrf_cookies=False,
-            # cookie_secret="__TODO:_GENERATE_YOUR_OWN_RANDOM_VALUE_HERE__",
+            xsrf_cookies=True,
 
             # how to generate: https://gist.github.com/didip/823887
             cookie_secret=__COOKIE_SECRET__,
             login_url="/auth/login/",
 
-            # login_url="/auth/login",
             debug=options.debug,
             current_year=CURRENT_YEAR,
             author=AUTHOR,

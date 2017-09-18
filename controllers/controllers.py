@@ -50,10 +50,12 @@ class IndexHandler(BaseHandler):
         self.render("index.html", **context)
 
 
+# pages of CRUD
+
 class PageExampleCRUDGet(BaseHandler):
 
     # A list of URLs that can be use for the HTTP methods
-    urls = [r"/", r"/example/crud/get", r"/example/crud/get/"]
+    urls = [r"/example/crud/get", r"/example/crud/get/"]
 
     def get(self):
 
@@ -68,7 +70,7 @@ class PageExampleCRUDGet(BaseHandler):
 class PageExampleCRUDAdd(BaseHandler):
 
     # A list of URLs that can be use for the HTTP methods
-    urls = [r"/", r"/example/crud/add", r"/example/crud/add/"]
+    urls = [r"/example/crud/add", r"/example/crud/add/"]
 
     def get(self):
 
@@ -82,7 +84,7 @@ class PageExampleCRUDAdd(BaseHandler):
 
 class PageExampleCRUDRemove(BaseHandler):
     # A list of URLs that can be use for the HTTP methods
-    urls = [r"/", r"/example/crud/remove", r"/example/crud/remove/"]
+    urls = [r"/example/crud/remove", r"/example/crud/remove/"]
 
     def get(self):
         # Some fictional context
@@ -96,19 +98,13 @@ class PageExampleCRUDRemove(BaseHandler):
 
 # authentication
 
-
 class AuthLogoutHandler(BaseHandler):
 
     urls = [r"/auth/logout/", r"/auth/logout"]
 
     def get(self):
         self.clear_cookie("user")
-        # redirect = self.get_argument("next", "/")
-        # self.redirect(redirect)
-
-        # self.redirect(self.__EL_AFTER_LOGGED_OUT_REDIRECT_TO__)
-
-        self.render("example/auth/logout.html")
+        self.redirect(self.__EL_AFTER_LOGGED_OUT_REDIRECT_TO__)
 
 
 class AuthLoginHandler(BaseHandler):
@@ -189,7 +185,6 @@ class GoogleLoginHandler(BaseHandler, GoogleOAuth2Mixin):
             )
 
 
-
 class FacebookLoginHandler(BaseHandler, FacebookGraphMixin):
     """
         Tornado Auth:
@@ -243,15 +238,27 @@ class FacebookLoginHandler(BaseHandler, FacebookGraphMixin):
             )
 
 
-class LoginSuccess(BaseHandler):
+# login and logout with success
+
+class AuthLoginSuccessHandler(BaseHandler):
 
     # nl = need login
-    urls = [r"/auth/login/success", r"/auth/login/success/"]
+    urls = [r"/auth/login/success/", r"/auth/login/success"]
 
     def get(self):
         self.render("example/auth/login_success.html")
 
 
+class AuthLogoutSuccessHandler(BaseHandler):
+
+    # nl = need login
+    urls = [r"/auth/logout/success/", r"/auth/logout/success"]
+
+    def get(self):
+        self.render("example/auth/logout.html")
+
+
+# other handlers
 
 class MainHandlerNeedLogin(BaseHandler):
 
@@ -272,8 +279,6 @@ class MainHandlerDontNeedLogin(BaseHandler):
     def get(self):
         username = xhtml_escape(self.current_user)
         self.render("example/main/maindontneedlogin.html", username=username)
-
-
 
 
 # geometry

@@ -65,9 +65,13 @@
 
             <ul class="nav navbar-nav navbar-right">
 
-                <li><a href="/auth/login/"> Login </a></li>
-
-                <li><a href="/auth/logout/"> Logout </a></li>
+                {% if not current_user %}
+                    <!-- if there is no user logged -->
+                    <li><a href="/auth/login/"> Login </a></li>
+                {% else %}
+                    <!-- if there is user logged -->
+                    <li><a href="/auth/logout/"> Logout </a></li>
+                {% end %}
 
                 <!--
 
