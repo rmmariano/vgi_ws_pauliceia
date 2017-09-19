@@ -65,7 +65,8 @@ class HttpServerApplication(Application):
         __setting__s = dict(
             blog_title=TITLE_APP,
             template_path=join(dirname(__file__), "templates"),
-            xsrf_cookies=True,
+            # xsrf_cookies=True,
+            xsrf_cookies=False,
 
             # how to generate: https://gist.github.com/didip/823887
             cookie_secret=__COOKIE_SECRET__,

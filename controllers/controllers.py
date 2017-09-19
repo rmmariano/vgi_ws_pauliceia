@@ -104,7 +104,7 @@ class AuthLogoutHandler(BaseHandler):
 
     def get(self):
         self.clear_cookie("user")
-        self.redirect(self.__EL_AFTER_LOGGED_OUT_REDIRECT_TO__)
+        self.redirect(self.__AFTER_LOGGED_OUT_REDIRECT_TO__)
 
 
 class AuthLoginHandler(BaseHandler):
@@ -116,10 +116,7 @@ class AuthLoginHandler(BaseHandler):
     urls = [r"/auth/login/", r"/auth/login"]
 
     def get(self):
-        try:
-            errormessage = self.get_argument("error")
-        except:
-            errormessage = ""
+        errormessage = self.get_argument("error", "")
 
         self.render("example/auth/login.html", errormessage=errormessage)
 
@@ -135,7 +132,7 @@ class AuthLoginHandler(BaseHandler):
 
             self.set_and_send_status(status=200, reason="Logged in system")
             return
-            # super(BaseHandler, self).redirect(self.__EL_AFTER_LOGGED_REDIRECT_TO__)
+            # super(BaseHandler, self).redirect(self.__AFTER_LOGGED_REDIRECT_TO__)
         else:
             self.set_and_send_status(status=404, reason="Login is invalid. Correct them and try again.")
             return
@@ -174,7 +171,7 @@ class GoogleLoginHandler(BaseHandler, GoogleOAuth2Mixin):
             # user_cookie = self.get_current_user()
             #
             # self.set_and_send_status(status=200, reason="Logged in system")
-            super(BaseHandler, self).redirect(self.__EL_AFTER_LOGGED_REDIRECT_TO__)
+            super(BaseHandler, self).redirect(self.__AFTER_LOGGED_REDIRECT_TO__)
         else:
             yield self.authorize_redirect(
                 redirect_uri=self.redirect_uri,
@@ -229,7 +226,7 @@ class FacebookLoginHandler(BaseHandler, FacebookGraphMixin):
             # user_cookie = self.get_current_user()
             #
             # self.set_and_send_status(status=200, reason="Logged in system")
-            super(BaseHandler, self).redirect(self.__EL_AFTER_LOGGED_REDIRECT_TO__)
+            super(BaseHandler, self).redirect(self.__AFTER_LOGGED_REDIRECT_TO__)
         else:
             yield self.authorize_redirect(
                     redirect_uri=self.redirect_uri,
@@ -370,6 +367,10 @@ class AddGeometry(BaseHandler):
 
     urls = [r"/add/geometry/(?P<table_name>[^\/]+)/?(?P<params>[A-Za-z0-9-]+)?"]
 
+    def options(self, table_name, params):
+        super(BaseHandler, self).options()
+
+    @authenticated
     def post(self, table_name, params):
         # TODO: get id user from logged user ("id_user": 6)
 
@@ -551,6 +552,7 @@ class RemoveGeometry(BaseHandler):
 
     urls = [r"/remove/geometry/(?P<table_name>[^\/]+)/?(?P<params>[A-Za-z0-9-]+)?"]
 
+    @authenticated
     def get(self, table_name, params):
 
         ####################################################################################

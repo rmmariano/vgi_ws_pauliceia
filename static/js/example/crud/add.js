@@ -31,6 +31,7 @@ $(document).ready(function(){
 
         request.fail(function(data, textStatus, information) {
             console.log("fail x( ");
+            console.log(data["statusText"]);
             console.log(data);
         });
 
@@ -84,6 +85,7 @@ $(document).ready(function(){
 
         request.fail(function(data, textStatus, information) {
             console.log("fail x( ");
+            console.log(data["statusText"]);
             console.log(data);
         });
 
@@ -139,6 +141,7 @@ $(document).ready(function(){
 
         request.fail(function(data, textStatus, information) {
             console.log("fail x( ");
+            console.log(data["statusText"]);
             console.log(data);
         });
 
@@ -171,15 +174,16 @@ $(document).ready(function(){
                 "date": "2017-08-01",
                 "first_day": null,
                 "tags": [
-                    {"k": "k1", "v": "v1"},
-                    {"k": "k2", "v": "v2"},
+                    {"k": "link", "v": "https://name.site/artigo.pdf"},
+                    {"k": "link", "v": "https://name.site/tese.pdf"},
                 ]
             }
         ];
 
 
         var request = $.ajax({
-            url: "/add/geometry/tb_places",
+//            url: "/add/geometry/tb_places",
+            url: "http://localhost:8888/add/geometry/tb_places",
             method: "POST",
             data: JSON.stringify(points_to_add),
             contentType: "application/json"
@@ -196,6 +200,7 @@ $(document).ready(function(){
 
         request.fail(function(data, textStatus, information) {
             console.log("fail x( ");
+            console.log(data["statusText"]);
             console.log(data);
         });
 

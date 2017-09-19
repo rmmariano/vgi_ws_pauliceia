@@ -29,9 +29,25 @@ class BaseHandler(RequestHandler):
     PGSQLConn = PGSQLConnection.get_instance()
 
     # LOGIN  // external login (EL)
-    __EL_AFTER_LOGGED_REDIRECT_TO__ = "/auth/login/success/"
-    __EL_AFTER_LOGGED_OUT_REDIRECT_TO__ = "/auth/logout/success/"
+    __AFTER_LOGGED_REDIRECT_TO__ = "/auth/login/success/"
+    __AFTER_LOGGED_OUT_REDIRECT_TO__ = "/auth/logout/success/"
 
+    ################################################################################
+    # control requests
+
+    def set_default_headers(self):
+        # list specific domains that are allow to use this webserver
+        self.set_header("Access-Control-Allow-Origin", "http://localhost:8889")
+        self.set_header("Access-Control-Allow-Headers", "Content-Type, x-requested-with")
+        self.set_header('Access-Control-Allow-Methods', ' GET, POST, OPTIONS')
+
+    def options(self):
+        # https://stackoverflow.com/questions/35254742/tornado-server-enable-cors-requests
+        # no body
+        self.set_status(204)
+        self.finish()
+
+    ################################################################################
 
     def get_the_json_validated(self):
         """
